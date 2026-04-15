@@ -1,101 +1,370 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { Sparkles, Zap, TrendingUp, Flame } from "lucide-react";
+import confetti from "canvas-confetti";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import UploadZone from "@/components/UploadZone";
+import LoadingRoast from "@/components/LoadingRoast";
+import { ResumeAnalysis } from "@/lib/types";
+
+// Demo data for demo mode
+const demoAnalysis: ResumeAnalysis = {
+  overallScore: 73,
+  roastHeadline:
+    "Your resume is the software equivalent of 'Hello World' – technically correct, but nobody's impressed.",
+  roastQuote:
+    "Look, I've seen grocery lists with more compelling narratives. You have the ingredients for a great resume, but you're serving them raw. Let's cook this properly and turn those 'proficient in MS Office' vibes into actual hireable energy.",
+  categories: {
+    structureCompleteness: {
+      score: 16,
+      maxScore: 20,
+      feedback:
+        "Solid foundation with most essential sections present, but missing a compelling summary.",
+      issues: [
+        "No professional summary or objective statement",
+        "Projects section is thin",
+      ],
+      suggestions: [
+        "Add a 2-3 sentence professional summary at the top",
+        "Expand projects section with more details",
+      ],
+    },
+    contentQuality: {
+      score: 14,
+      maxScore: 20,
+      feedback:
+        "Good start but relies too heavily on buzzwords and generic phrases.",
+      issues: [
+        "Overuse of 'responsible for' and 'assisted with'",
+        "Vague descriptions without specific outcomes",
+      ],
+      suggestions: [
+        "Replace passive voice with active voice",
+        "Focus on outcomes, not just tasks",
+      ],
+    },
+    impactMetrics: {
+      score: 9,
+      maxScore: 15,
+      feedback:
+        "Some quantified achievements present but could use more numbers.",
+      issues: [
+        "Only 2 bullet points have quantified results",
+        "Missing scale of impact",
+      ],
+      suggestions: [
+        "Add percentages, dollar amounts, or user counts",
+        "Show before/after comparisons",
+      ],
+    },
+    languageWriting: {
+      score: 7,
+      maxScore: 10,
+      feedback: "Clean writing with good grammar, but could be more concise.",
+      issues: ["Some wordy phrases", "Inconsistent verb tense in experience"],
+      suggestions: [
+        "Cut 10-20% of words from each bullet",
+        "Use present tense for current role, past for previous",
+      ],
+    },
+    formattingReadability: {
+      score: 11,
+      maxScore: 15,
+      feedback: "Clean layout with good visual hierarchy.",
+      issues: [
+        "Inconsistent spacing between sections",
+        "Skills list runs too long",
+      ],
+      suggestions: [
+        "Standardize whitespace",
+        "Group skills into categories",
+      ],
+    },
+    atsCompatibility: {
+      score: 7,
+      maxScore: 10,
+      feedback: "Good keyword density but missing some standard terms.",
+      issues: [
+        "Missing standard ATS keywords",
+        "No mention of methodologies used",
+      ],
+      suggestions: [
+        "Add more industry-standard keywords",
+        "Include Agile, Scrum, or other methodologies",
+      ],
+    },
+    skillsRelevance: {
+      score: 9,
+      maxScore: 10,
+      feedback:
+        "Strong technical skills that align well with current market demands.",
+      issues: ["Could mention soft skills more"],
+      suggestions: ["Add leadership and communication skills"],
+    },
+  },
+  detectedSections: {
+    education: true,
+    experience: true,
+    skills: true,
+    projects: true,
+    summary: false,
+    certifications: false,
+    achievements: true,
+  },
+  missingSections: ["Professional Summary", "Certifications"],
+  atsKeywords: {
+    found: ["Python", "React", "Git", "JavaScript", "Node.js", "SQL"],
+    missing: ["CI/CD", "Agile", "REST API", "Docker", "AWS"],
+    score: 65,
+  },
+  topStrengths: [
+    "Strong technical skill set with modern frameworks",
+    "Clear career progression shown",
+    "Good educational background with relevant degree",
+  ],
+  criticalFixes: [
+    "Add quantified metrics to ALL experience bullet points",
+    "Write a compelling professional summary",
+    "Fix verb tense consistency in experience section",
+  ],
+  actionPlan: [
+    {
+      priority: "HIGH",
+      action:
+        "Add quantified metrics to all experience bullet points (%, $, #)",
+    },
+    {
+      priority: "HIGH",
+      action:
+        "Write a 2-3 sentence professional summary highlighting your unique value",
+    },
+    {
+      priority: "MEDIUM",
+      action: "Group skills into categories (Frontend, Backend, Tools)",
+    },
+    {
+      priority: "MEDIUM",
+      action: "Add missing ATS keywords: CI/CD, Agile, REST API, Docker",
+    },
+    {
+      priority: "LOW",
+      action: "Standardize spacing and formatting throughout",
+    },
+  ],
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const router = useRouter();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setError(null);
+  };
+
+  const handleClearFile = () => {
+    setSelectedFile(null);
+    setError(null);
+  };
+
+  const handleAnalyze = async () => {
+    if (!selectedFile) {
+      setError("Please upload a resume first");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("resume", selectedFile);
+
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to analyze resume");
+      }
+
+      // Store analysis in sessionStorage
+      sessionStorage.setItem("resumeAnalysis", JSON.stringify(data));
+
+      // Trigger confetti if score is high
+      if (data.overallScore > 80) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ["#22c55e", "#3b82f6", "#f97316"],
+        });
+      }
+
+      router.push("/results");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "An unexpected error occurred"
+      );
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemo = () => {
+    sessionStorage.setItem("resumeAnalysis", JSON.stringify(demoAnalysis));
+
+    // Trigger confetti
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#22c55e", "#3b82f6", "#f97316"],
+    });
+
+    router.push("/results");
+  };
+
+  return (
+    <main className="min-h-screen bg-background">
+      <Navbar />
+
+      {isLoading && <LoadingRoast />}
+
+      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Hero */}
+          <Hero />
+
+          {/* Upload Section */}
+          <div className="mt-12">
+            <UploadZone
+              onFileSelect={handleFileSelect}
+              selectedFile={selectedFile}
+              onClearFile={handleClearFile}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-center"
+              >
+                {error}
+              </motion.div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAnalyze}
+                disabled={isLoading || !selectedFile}
+                className="btn-primary text-lg flex items-center justify-center gap-2"
+              >
+                {isLoading ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    Analyzing...
+                  </>
+                ) : (
+                  <>
+                    <Flame className="w-5 h-5" />
+                    Roast My Resume
+                  </>
+                )}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleDemo}
+                className="px-6 py-4 border border-navy-700 text-accent-slate font-medium rounded-lg
+                         transition-all duration-300 hover:border-electric-600 hover:text-white
+                         active:scale-95 flex items-center justify-center gap-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                Try Demo
+              </motion.button>
+            </div>
+          </div>
+
+          {/* Feature Cards */}
+          <div className="mt-20 grid sm:grid-cols-3 gap-6">
+            {[
+              {
+                icon: <Zap className="w-6 h-6" />,
+                title: "Analyze",
+                description:
+                  "AI-powered deep analysis of your resume's strengths and weaknesses",
+                color: "text-yellow-500",
+              },
+              {
+                icon: <TrendingUp className="w-6 h-6" />,
+                title: "Score",
+                description:
+                  "Get detailed scores across 7 critical resume dimensions",
+                color: "text-green-500",
+              },
+              {
+                icon: <Sparkles className="w-6 h-6" />,
+                title: "Improve",
+                description:
+                  "Receive actionable, prioritized feedback to land more interviews",
+                color: "text-electric-500",
+              },
+            ].map((feature, index) => (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+                whileHover={{ y: -5 }}
+                className="card-glass text-center group"
+              >
+                <div
+                  className={`inline-flex items-center justify-center w-12 h-12 rounded-xl
+                              bg-navy-800 mb-4 group-hover:bg-navy-700 transition-colors ${feature.color}`}
+                >
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-sm text-accent-slate">{feature.description}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Footer Note */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="mt-16 text-center text-sm text-accent-slate/60"
           >
-            Read our docs
-          </a>
+            Built with 🔥 by AEC Coding Club for the Holiday Hack Week
+          </motion.p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      </div>
+    </main>
   );
 }
