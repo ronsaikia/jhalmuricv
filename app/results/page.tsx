@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle,
@@ -10,6 +10,8 @@ import {
   Flame,
   ArrowRight,
   Flag,
+  Share2,
+  Copy,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import ScoreGauge from "@/components/ScoreGauge";
@@ -17,12 +19,91 @@ import CategoryCard from "@/components/CategoryCard";
 import ATSChecker from "@/components/ATSChecker";
 import FeedbackSection from "@/components/FeedbackSection";
 import ReportDownload from "@/components/ReportDownload";
-import { ResumeAnalysis, CategoryKey, sectionLabels } from "@/lib/types";
+import { ResumeAnalysis, CategoryKey, sectionLabels, getScoreReaction } from "@/lib/types";
+
+// Section Header Component with animated accent bar
+interface SectionHeaderProps {
+  icon: React.ReactNode;
+  title: string;
+  subtitle?: string;
+  delay?: number;
+}
+
+function SectionHeader({ icon, title, subtitle, delay = 0 }: SectionHeaderProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay }}
+      className="mb-6"
+    >
+      <div className="flex items-center gap-3 mb-2">
+        {/* Animated accent bar */}
+        <motion.div
+          className="w-1 h-8 bg-electric-500 rounded-full"
+          initial={{ scaleY: 0 }}
+          whileInView={{ scaleY: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: delay + 0.2, ease: "easeOut" }}
+          style={{ transformOrigin: "top" }}
+        />
+        <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
+          {icon}
+        </div>
+        <h2 className="text-2xl font-bold text-white">{title}</h2>
+      </div>
+      {subtitle && <p className="text-accent-slate ml-12">{subtitle}</p>}
+    </motion.div>
+  );
+}
+
+// Toast notification component
+interface ToastProps {
+  message: string;
+  subMessage?: string;
+  isVisible: boolean;
+  onClose: () => void;
+}
+
+function Toast({ message, subMessage, isVisible, onClose }: ToastProps) {
+  useEffect(() => {
+    if (isVisible) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, onClose]);
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+        >
+          <div className="glass-strong px-6 py-4 rounded-xl border border-green-500/50">
+            <p className="text-white font-medium text-center">{message}</p>
+            {subMessage && (
+              <p className="text-sm text-accent-slate text-center mt-1">{subMessage}</p>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function ResultsPage() {
   const router = useRouter();
   const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     // Get analysis from sessionStorage
@@ -40,6 +121,18 @@ export default function ResultsPage() {
     }
     setIsLoading(false);
   }, [router]);
+
+  const handleShare = () => {
+    if (!analysis) return;
+
+    const shareText = `I just got roasted by AI — scored ${analysis.overallScore}/100. Apparently my resume is "${analysis.roastHeadline}". Check yours at ${typeof window !== "undefined" ? window.location.origin : ""} 🔥`;
+
+    navigator.clipboard.writeText(shareText).then(() => {
+      setCopied(true);
+      setShowToast(true);
+      setTimeout(() => setCopied(false), 3000);
+    });
+  };
 
   if (isLoading) {
     return (
@@ -64,14 +157,17 @@ export default function ResultsPage() {
     analysis.categories
   ) as [CategoryKey, ResumeAnalysis["categories"][CategoryKey]][];
 
+  const scoreReaction = getScoreReaction(analysis.overallScore);
+
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto space-y-16">
-          {/* Section 1: Roast Header */}
+        <div className="max-w-6xl mx-auto space-y-16 overflow-hidden">
+          {/* Section 1: Roast Header - REORDERED */}
           <section className="text-center">
+            {/* Fire emoji - FIRST */}
             <div className="flex justify-center mb-6">
               <motion.div
                 animate={{
@@ -89,19 +185,58 @@ export default function ResultsPage() {
               </motion.div>
             </div>
 
+            {/* Score Gauge - SECOND */}
+            <div className="flex justify-center mb-4">
+              <ScoreGauge score={analysis.overallScore} />
+            </div>
+
+            {/* Overall Score label - THIRD */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-lg font-medium text-white mb-6"
+            >
+              Overall Score
+            </motion.p>
+
+            {/* Indian Score Reaction Badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex justify-center mb-8"
+            >
+              <div
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass-strong border ${
+                  analysis.overallScore >= 86
+                    ? "border-amber-400/50 shadow-lg shadow-amber-400/20"
+                    : analysis.overallScore >= 71
+                    ? "border-green-500/50"
+                    : analysis.overallScore >= 51
+                    ? "border-yellow-500/50"
+                    : analysis.overallScore >= 31
+                    ? "border-orange-500/50"
+                    : "border-red-500/50"
+                }`}
+              >
+                <span className="text-xl">{scoreReaction.emoji}</span>
+                <span className={`font-mono font-medium ${scoreReaction.color}`}>
+                  {scoreReaction.text}
+                </span>
+              </div>
+            </motion.div>
+
+            {/* roastHeadline - FOURTH (moved below gauge) */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl sm:text-4xl md:text-5xl font-bold text-gradient-fire mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold text-gradient-fire mb-8"
             >
               {analysis.roastHeadline}
             </motion.h1>
 
-            <div className="flex justify-center mb-8">
-              <ScoreGauge score={analysis.overallScore} />
-            </div>
-
-            {/* Roast Quote Card */}
+            {/* Roast Quote Card - LAST (with blinking cursor) */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -118,6 +253,7 @@ export default function ResultsPage() {
                   <div className="p-6">
                     <p className="text-lg text-accent-slate italic">
                       &ldquo;{analysis.roastQuote}&rdquo;
+                      <span className="inline-block w-2 h-5 bg-accent-slate ml-1 animate-blink-cursor" />
                     </p>
                   </div>
                 </div>
@@ -127,22 +263,11 @@ export default function ResultsPage() {
 
           {/* Section 2: Score Breakdown */}
           <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
-                  <Flag className="w-4 h-4 text-electric-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">Score Breakdown</h2>
-              </div>
-              <p className="text-accent-slate">
-                Detailed analysis across 7 key dimensions
-              </p>
-            </motion.div>
+            <SectionHeader
+              icon={<Flag className="w-4 h-4 text-electric-500" />}
+              title="Score Breakdown"
+              subtitle="Detailed analysis across 7 key dimensions"
+            />
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {categoryEntries.map(([key, data], index) => (
@@ -158,22 +283,11 @@ export default function ResultsPage() {
 
           {/* Section 3: Section Detection */}
           <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4 text-electric-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">Section Detection</h2>
-              </div>
-              <p className="text-accent-slate">
-                Which sections we found in your resume
-              </p>
-            </motion.div>
+            <SectionHeader
+              icon={<CheckCircle className="w-4 h-4 text-electric-500" />}
+              title="Section Detection"
+              subtitle="Which sections we found in your resume"
+            />
 
             <div className="card-glass">
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
@@ -235,41 +349,21 @@ export default function ResultsPage() {
 
           {/* Section 4: ATS Compatibility */}
           <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
-                  <Flame className="w-4 h-4 text-electric-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">ATS Compatibility</h2>
-              </div>
-              <p className="text-accent-slate">
-                How well your resume performs with Applicant Tracking Systems
-              </p>
-            </motion.div>
+            <SectionHeader
+              icon={<Flame className="w-4 h-4 text-electric-500" />}
+              title="ATS Compatibility"
+              subtitle="How well your resume performs with Applicant Tracking Systems"
+            />
 
             <ATSChecker data={analysis.atsKeywords} />
           </section>
 
           {/* Section 5: Strengths vs Critical Fixes */}
           <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
-                  <ArrowRight className="w-4 h-4 text-electric-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">The Good vs The Ugly</h2>
-              </div>
-            </motion.div>
+            <SectionHeader
+              icon={<ArrowRight className="w-4 h-4 text-electric-500" />}
+              title="The Good vs The Ugly"
+            />
 
             <FeedbackSection
               strengths={analysis.topStrengths}
@@ -279,22 +373,11 @@ export default function ResultsPage() {
 
           {/* Section 6: Action Plan */}
           <section>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-6"
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-electric-500/20 flex items-center justify-center">
-                  <CheckCircle className="w-4 h-4 text-electric-500" />
-                </div>
-                <h2 className="text-2xl font-bold text-white">Your Action Plan</h2>
-              </div>
-              <p className="text-accent-slate">
-                Prioritized steps to improve your resume
-              </p>
-            </motion.div>
+            <SectionHeader
+              icon={<CheckCircle className="w-4 h-4 text-electric-500" />}
+              title="Your Action Plan"
+              subtitle="Prioritized steps to improve your resume"
+            />
 
             <div className="space-y-3">
               {analysis.actionPlan.map((action, index) => (
@@ -322,7 +405,7 @@ export default function ResultsPage() {
             </div>
           </section>
 
-          {/* Section 7: Download Report */}
+          {/* Section 7: Download Report & Share */}
           <section className="text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -338,11 +421,43 @@ export default function ResultsPage() {
                 improvements today.
               </p>
 
-              <ReportDownload analysis={analysis} />
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <ReportDownload analysis={analysis} />
+
+                {/* Share Roast Button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleShare}
+                  className="px-6 py-4 border border-navy-700 text-accent-slate font-medium rounded-lg
+                           transition-all duration-300 hover:border-electric-600 hover:text-white
+                           active:scale-95 flex items-center justify-center gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Copy className="w-5 h-5 text-green-500" />
+                      <span className="text-green-500">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-5 h-5" />
+                      Share My Roast 🔥
+                    </>
+                  )}
+                </motion.button>
+              </div>
             </motion.div>
           </section>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      <Toast
+        message="Copied to clipboard!"
+        subMessage="Ab share karo sharam ke saath 😂"
+        isVisible={showToast}
+        onClose={() => setShowToast(false)}
+      />
     </main>
   );
 }

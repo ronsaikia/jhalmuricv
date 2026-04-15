@@ -13,7 +13,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
+          {/* Logo - Updated with fire emoji */}
           <motion.div
             className="flex items-center gap-2"
             whileHover={{ scale: 1.02 }}
@@ -29,20 +29,49 @@ export default function Navbar() {
               </motion.div>
             </div>
             <span className="font-mono font-bold text-lg">
-              Resume <span className="text-electric-500">Roaster</span>
+              🔥 Resume Roaster
             </span>
           </motion.div>
 
-          {/* AEC Badge */}
+          {/* Warning Badge - Pulsing and shaking */}
           <motion.div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-navy-800/50 border border-navy-700"
-            whileHover={{ borderColor: "rgba(37, 99, 235, 0.5)" }}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-900/80 border border-red-800"
+            animate={{
+              rotate: [-1, 1, -1, 1, -1, 0],
+            }}
+            transition={{
+              duration: 0.5,
+              repeat: Infinity,
+              repeatDelay: 2,
+            }}
+            whileHover={{ scale: 1.05 }}
           >
-            <div className="w-2 h-2 rounded-full bg-electric-500 animate-pulse" />
-            <span className="text-xs font-mono text-accent-slate">
-              AEC Coding Club
+            <span className="text-xs font-mono text-white animate-pulse">
+              ⚠️ Do not redeem the card!!
             </span>
           </motion.div>
+        </div>
+
+        {/* Bottom bar with CHIRON link */}
+        <div className="flex justify-center pb-2">
+          <a
+            href="https://linktr.ee/chiron_dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-mono text-blue-400 animate-pulse cursor-pointer"
+            style={{
+              filter: "drop-shadow(0 0 8px #3b82f6)",
+              transition: "filter 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.filter = "drop-shadow(0 0 16px #60a5fa)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.filter = "drop-shadow(0 0 8px #3b82f6)";
+            }}
+          >
+            Built by CHIRON
+          </a>
         </div>
       </div>
     </motion.nav>

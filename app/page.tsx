@@ -3,21 +3,34 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { Sparkles, Zap, TrendingUp, Flame } from "lucide-react";
-import confetti from "canvas-confetti";
+import { Sparkles, Zap, TrendingUp, Flame, RotateCcw } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import UploadZone from "@/components/UploadZone";
 import LoadingRoast from "@/components/LoadingRoast";
 import { ResumeAnalysis } from "@/lib/types";
 
+// Error states for invalid document
+interface InvalidDocumentError {
+  status: "invalid_document";
+  message: string;
+}
+
+const invalidDocumentMessages = [
+  "Bhai, ye resume hai? Bijli ka bill upload kar diya kya?",
+  "Uploaded document is as irrelevant as your 1st-year engineering syllabus.",
+  "Did you just upload your Tinder bio? Because HR isn't swiping right on this either.",
+  "Aadhaar card upload mat kar bhai, job CV pe milti hai.",
+  "System confused: Is this a resume or a grocery list? Go back and upload a real CV.",
+];
+
 // Demo data for demo mode
 const demoAnalysis: ResumeAnalysis = {
   overallScore: 73,
   roastHeadline:
-    "Your resume is the software equivalent of 'Hello World' – technically correct, but nobody's impressed.",
+    "Bhai, tera resume dekh ke HR ne chai pi li aur ghost kar diya.",
   roastQuote:
-    "Look, I've seen grocery lists with more compelling narratives. You have the ingredients for a great resume, but you're serving them raw. Let's cook this properly and turn those 'proficient in MS Office' vibes into actual hireable energy.",
+    "Look, I've seen grocery lists with more compelling narratives. You have the ingredients for a great resume, but you're serving them raw. Tera 'proficient in everything' actually means 'master of nothing' - aur yeh sabko dikhta hai except tereko.",
   categories: {
     structureCompleteness: {
       score: 16,
@@ -157,20 +170,62 @@ const demoAnalysis: ResumeAnalysis = {
   ],
 };
 
+// Function to check if text looks like a resume
+function looksLikeResume(text: string): boolean {
+  const resumeKeywords = [
+    "experience",
+    "education",
+    "skills",
+    "work",
+    "job",
+    "employment",
+    "qualification",
+    "degree",
+    "university",
+    "college",
+    "project",
+    "achievement",
+    "summary",
+    "objective",
+    "contact",
+    "email",
+    "phone",
+    "linkedin",
+    "github",
+  ];
+
+  const textLower = text.toLowerCase();
+  const keywordCount = resumeKeywords.filter((kw) =>
+    textLower.includes(kw)
+  ).length;
+
+  // If less than 3 resume keywords found, likely not a resume
+  return keywordCount >= 3 && text.length > 200;
+}
+
 export default function Home() {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [invalidDocError, setInvalidDocError] = useState<InvalidDocumentError | null>(null);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setError(null);
+    setInvalidDocError(null);
   };
 
   const handleClearFile = () => {
     setSelectedFile(null);
     setError(null);
+    setInvalidDocError(null);
+  };
+
+  const handleRetry = () => {
+    setSelectedFile(null);
+    setError(null);
+    setInvalidDocError(null);
   };
 
   const handleAnalyze = async () => {
@@ -181,6 +236,7 @@ export default function Home() {
 
     setIsLoading(true);
     setError(null);
+    setInvalidDocError(null);
 
     try {
       const formData = new FormData();
@@ -193,6 +249,20 @@ export default function Home() {
 
       const data = await response.json();
 
+      // Check for invalid document error
+      if (data.status === "invalid_document" || !looksLikeResume(data.extractedText || "")) {
+        const randomMessage =
+          invalidDocumentMessages[
+            Math.floor(Math.random() * invalidDocumentMessages.length)
+          ];
+        setInvalidDocError({
+          status: "invalid_document",
+          message: randomMessage,
+        });
+        setIsLoading(false);
+        return;
+      }
+
       if (!response.ok) {
         throw new Error(data.error || "Failed to analyze resume");
       }
@@ -202,6 +272,7 @@ export default function Home() {
 
       // Trigger confetti if score is high
       if (data.overallScore > 80) {
+        const confetti = (await import("canvas-confetti")).default;
         confetti({
           particleCount: 100,
           spread: 70,
@@ -221,20 +292,64 @@ export default function Home() {
 
   const handleDemo = () => {
     sessionStorage.setItem("resumeAnalysis", JSON.stringify(demoAnalysis));
-
-    // Trigger confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ["#22c55e", "#3b82f6", "#f97316"],
-    });
-
     router.push("/results");
   };
 
+  // Show invalid document error screen
+  if (invalidDocError) {
+    return (
+      <main className="min-h-screen bg-background overflow-x-hidden">
+        <Navbar />
+
+        <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md w-full"
+          >
+            <div className="glass-strong rounded-2xl p-8 text-center border border-red-500/30">
+              {/* Pulsing Clown/Warning Emoji */}
+              <motion.div
+                animate={{
+                  scale: [1, 1.2, 1],
+                  rotate: [0, -5, 5, -5, 0],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatDelay: 0.5,
+                }}
+                className="text-8xl mb-6"
+              >
+                🤡
+              </motion.div>
+
+              <h2 className="text-2xl font-bold text-red-400 mb-4">
+                Invalid Document
+              </h2>
+
+              <p className="text-lg text-accent-slate mb-8 italic">
+                &ldquo;{invalidDocError.message}&rdquo;
+              </p>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleRetry}
+                className="btn-primary flex items-center justify-center gap-2 mx-auto"
+              >
+                <RotateCcw className="w-5 h-5" />
+                Galti ho gayi, asli resume upload karunga 😭
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
       {isLoading && <LoadingRoast />}
@@ -287,7 +402,7 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                    <Flame className="w-5 h-5" />
+                  <Flame className="w-5 h-5" />
                     Roast My Resume
                   </>
                 )}
@@ -361,7 +476,7 @@ export default function Home() {
             transition={{ delay: 1 }}
             className="mt-16 text-center text-sm text-accent-slate/60"
           >
-            Built with 🔥 by AEC Coding Club for the Holiday Hack Week
+            Built with 🔥 by CHIRON
           </motion.p>
         </div>
       </div>

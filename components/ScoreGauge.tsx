@@ -32,13 +32,14 @@ export default function ScoreGauge({
   };
 
   const getGlowColor = (s: number): string => {
-    if (s <= 40) return "rgba(239, 68, 68, 0.4)";
-    if (s <= 70) return "rgba(234, 179, 8, 0.4)";
-    return "rgba(34, 197, 94, 0.4)";
+    if (s <= 40) return "rgba(239, 68, 68, 0.5)";
+    if (s <= 70) return "rgba(234, 179, 8, 0.5)";
+    return "rgba(34, 197, 94, 0.5)";
   };
 
   const color = getColor(score);
   const glowColor = getGlowColor(score);
+  const trackColor = color + "4D"; // 30% opacity in hex
 
   // Animate score counting
   useEffect(() => {
@@ -60,40 +61,84 @@ export default function ScoreGauge({
     return () => clearInterval(timer);
   }, [score]);
 
+  // Calculate stroke dash offset - handle edge case for 100%
+  const strokeDashoffset = score >= 100 ? 0 : circumference - progress;
+
   return (
     <div className="relative flex flex-col items-center">
+      {/* Container - perfectly circular */}
       <div
-        className="relative"
-        style={{ width: size, height: size }}
+        className="relative rounded-full"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          overflow: "visible",
+        }}
       >
-        {/* Glow Effect */}
+        {/* Outer glow effect */}
         <motion.div
-          className="absolute inset-0 rounded-full"
+          className="absolute inset-0 rounded-full pointer-events-none"
           style={{
-            boxShadow: `0 0 40px ${glowColor}`,
+            boxShadow: `0 0 60px ${glowColor}, 0 0 100px ${glowColor}`,
+            borderRadius: "50%",
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
         />
 
-        {/* SVG Gauge */}
+        {/* Inner shadow ring for depth */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            borderRadius: "50%",
+            boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.2)",
+          }}
+        />
+
+        {/* SVG Gauge - overflow visible for glow */}
         <svg
           width={size}
           height={size}
+          viewBox={`0 0 ${size} ${size}`}
           className="transform -rotate-90"
+          style={{ overflow: "visible" }}
         >
-          {/* Background Circle */}
+          <defs>
+            {/* Glow filter for progress circle */}
+            <filter id={`glow-${score}`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Background Track Circle - using score color with 30% opacity */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#1e3a5f"
+            stroke={trackColor}
             strokeWidth={strokeWidth}
+            strokeLinecap="round"
           />
 
-          {/* Progress Circle */}
+          {/* Inner shadow ring (SVG) */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius - strokeWidth / 2 - 2}
+            fill="none"
+            stroke="rgba(0, 0, 0, 0.3)"
+            strokeWidth={1}
+          />
+
+          {/* Progress Circle with glow filter */}
           <motion.circle
             cx={size / 2}
             cy={size / 2}
@@ -104,11 +149,9 @@ export default function ScoreGauge({
             strokeLinecap="round"
             strokeDasharray={circumference}
             initial={{ strokeDashoffset: circumference }}
-            animate={{ strokeDashoffset: circumference - progress }}
+            animate={{ strokeDashoffset: strokeDashoffset }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            style={{
-              filter: `drop-shadow(0 0 10px ${color})`,
-            }}
+            filter={`url(#glow-${score})`}
           />
         </svg>
 

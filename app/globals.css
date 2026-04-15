@@ -17,6 +17,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  height: auto;
 }
 
 body {
@@ -24,6 +26,8 @@ body {
   background: var(--background);
   font-family: var(--font-inter), system-ui, sans-serif;
   min-height: 100vh;
+  overflow-x: hidden;
+  height: auto;
 }
 
 @layer utilities {
@@ -190,4 +194,75 @@ body {
   background: #f97316;
   border-radius: 50%;
   pointer-events: none;
+}
+
+/* Terminal cursor blink animation */
+@keyframes blink-cursor {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink-cursor {
+  animation: blink-cursor 0.7s infinite;
+}
+
+/* Section header accent bar animation */
+@keyframes grow-height {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.animate-grow-height {
+  animation: grow-height 0.6s ease-out forwards;
+  transform-origin: top;
+}
+
+/* Toast slide up animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fade-out 0.3s ease-out forwards;
+}
+
+/* Shake animation for warning badge */
+@keyframes shake {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-1deg);
+  }
+  75% {
+    transform: rotate(1deg);
+  }
 }

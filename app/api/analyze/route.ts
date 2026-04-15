@@ -7,6 +7,55 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
 
+// Function to check if text looks like a resume
+function looksLikeResume(text: string): boolean {
+  const resumeKeywords = [
+    "experience",
+    "education",
+    "skills",
+    "work",
+    "job",
+    "employment",
+    "qualification",
+    "degree",
+    "university",
+    "college",
+    "project",
+    "achievement",
+    "summary",
+    "objective",
+    "contact",
+    "email",
+    "phone",
+    "linkedin",
+    "github",
+    "professional",
+    "career",
+    "internship",
+    "certificate",
+    "training",
+    "references",
+  ];
+
+  const textLower = text.toLowerCase();
+  const keywordCount = resumeKeywords.filter((kw) =>
+    textLower.includes(kw)
+  ).length;
+
+  // If less than 3 resume keywords found, likely not a resume
+  // Also check for minimum length
+  return keywordCount >= 3 && text.length > 300;
+}
+
+// Pool of invalid document messages
+const invalidDocumentMessages = [
+  "Bhai, ye resume hai? Bijli ka bill upload kar diya kya?",
+  "Uploaded document is as irrelevant as your 1st-year engineering syllabus.",
+  "Did you just upload your Tinder bio? Because HR isn't swiping right on this either.",
+  "Aadhaar card upload mat kar bhai, job CV pe milti hai.",
+  "System confused: Is this a resume or a grocery list? Go back and upload a real CV.",
+];
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
@@ -58,6 +107,20 @@ export async function POST(request: NextRequest) {
     if (!pdfText || pdfText.trim().length < 50) {
       return NextResponse.json(
         { error: "PDF contains too little text. It may be image-based or scanned." },
+        { status: 400 }
+      );
+    }
+
+    // Validate that this looks like a resume
+    if (!looksLikeResume(pdfText)) {
+      const randomMessage =
+        invalidDocumentMessages[Math.floor(Math.random() * invalidDocumentMessages.length)];
+      return NextResponse.json(
+        {
+          status: "invalid_document",
+          message: randomMessage,
+          error: "Invalid document uploaded",
+        },
         { status: 400 }
       );
     }

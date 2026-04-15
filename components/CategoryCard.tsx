@@ -20,6 +20,7 @@ export default function CategoryCard({
   const [isExpanded, setIsExpanded] = useState(false);
 
   const percentage = (data.score / data.maxScore) * 100;
+  const label = categoryLabels[categoryKey];
 
   // Color based on percentage
   const getColor = (p: number): { bg: string; text: string; glow: string } => {
@@ -55,19 +56,25 @@ export default function CategoryCard({
       onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-medium text-white">{categoryLabels[categoryKey]}</h3>
-        <div className="flex items-center gap-2">
-          <span className={`font-mono font-bold ${colors.text}`}>
-            {data.score}/{data.maxScore}
-          </span>
-          <motion.div
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown className="w-4 h-4 text-accent-slate" />
-          </motion.div>
+      <div className="mb-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-medium text-white">{label.title}</h3>
+          <div className="flex items-center gap-2">
+            <span className={`font-mono font-bold ${colors.text}`}>
+              {data.score}/{data.maxScore}
+            </span>
+            <motion.div
+              animate={{ rotate: isExpanded ? 180 : 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <ChevronDown className="w-4 h-4 text-accent-slate" />
+            </motion.div>
+          </div>
         </div>
+        {/* Hinglish Subtitle */}
+        <p className="text-xs text-accent-slate/70 mt-1 truncate">
+          {label.subtitle}
+        </p>
       </div>
 
       {/* Progress Bar */}

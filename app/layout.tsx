@@ -42,9 +42,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" style={{ overflowX: "hidden", height: "auto" }}>
       <body
         className={`${inter.variable} ${spaceMono.variable} antialiased min-h-screen`}
+        style={{ overflowX: "hidden", height: "auto" }}
       >
         {children}
       </body>
