@@ -167,10 +167,23 @@ export async function POST(request: NextRequest) {
       } catch (parseError) {
         console.error("JSON parse error:", parseError);
         console.error("Response text:", analysisText.substring(0, 500));
-        return NextResponse.json(
-          { error: "Failed to parse analysis response. Please try again." },
-          { status: 500 }
-        );
+
+        // Try to extract JSON from the response if Claude added extra text
+        try {
+          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            analysis = JSON.parse(jsonMatch[0]);
+            console.log("Successfully extracted JSON from response");
+          } else {
+            throw new Error("No JSON object found in response");
+          }
+        } catch (extractError) {
+          console.error("Failed to extract JSON:", extractError);
+          return NextResponse.json(
+            { error: "Failed to parse analysis response. Please try again." },
+            { status: 500 }
+          );
+        }
       }
 
       // Validate the response structure

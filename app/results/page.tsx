@@ -84,9 +84,9 @@ function Toast({ message, subMessage, isVisible, onClose }: ToastProps) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+          className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none"
         >
-          <div className="glass-strong px-6 py-4 rounded-xl border border-green-500/50">
+          <div className="glass-strong px-6 py-4 rounded-xl border border-green-500/50 pointer-events-auto mx-4">
             <p className="text-white font-medium text-center">{message}</p>
             {subMessage && (
               <p className="text-sm text-accent-slate text-center mt-1">{subMessage}</p>
@@ -185,9 +185,9 @@ export default function ResultsPage() {
               </motion.div>
             </div>
 
-            {/* Score Gauge - SECOND */}
-            <div className="flex justify-center mb-4">
-              <ScoreGauge score={analysis.overallScore} />
+            {/* Score Gauge - SECOND (with label=false to avoid duplication) */}
+            <div className="flex justify-center mb-6">
+              <ScoreGauge score={analysis.overallScore} showLabel={false} />
             </div>
 
             {/* Overall Score label - THIRD */}

@@ -470,14 +470,30 @@ export default function Home() {
           </div>
 
           {/* Footer Note */}
-          <motion.p
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-16 text-center text-sm text-accent-slate/60"
+            className="mt-16 text-center"
           >
-            Built with 🔥 by CHIRON
-          </motion.p>
+            <a
+              href="https://linktr.ee/chiron_dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-mono text-blue-400 hover:text-blue-300 transition-colors"
+              style={{
+                filter: "drop-shadow(0 0 8px #3b82f6)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.filter = "drop-shadow(0 0 16px #60a5fa)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = "drop-shadow(0 0 8px #3b82f6)";
+              }}
+            >
+              Built by CHIRON
+            </a>
+          </motion.div>
         </div>
       </div>
     </main>

@@ -10,9 +10,9 @@ export default function Hero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="space-y-4"
+        className="space-y-4 px-2 sm:px-0"
       >
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight leading-tight">
           <span className="text-gradient">Get Your Resume{" "}</span>
           <motion.span
             className="inline-flex items-center gap-2 text-gradient-fire"
@@ -28,6 +28,7 @@ export default function Hero() {
           >
             Roasted
             <motion.span
+              className="hidden sm:inline-block"
               animate={{
                 rotate: [0, 10, -10, 0],
                 scale: [1, 1.2, 1],

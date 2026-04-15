@@ -13,7 +13,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Logo - Updated with fire emoji */}
+          {/* Logo - Without fire emoji */}
           <motion.div
             className="flex items-center gap-2"
             whileHover={{ scale: 1.02 }}
@@ -29,13 +29,16 @@ export default function Navbar() {
               </motion.div>
             </div>
             <span className="font-mono font-bold text-lg">
-              🔥 Resume Roaster
+              Resume Roaster
             </span>
           </motion.div>
 
-          {/* Warning Badge - Pulsing and shaking */}
-          <motion.div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-900/80 border border-red-800"
+          {/* Warning Badge - Clickable link to linktree */}
+          <motion.a
+            href="https://linktr.ee/chiron_dev"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-900/80 border border-red-800 cursor-pointer"
             animate={{
               rotate: [-1, 1, -1, 1, -1, 0],
             }}
@@ -49,29 +52,7 @@ export default function Navbar() {
             <span className="text-xs font-mono text-white animate-pulse">
               ⚠️ Do not redeem the card!!
             </span>
-          </motion.div>
-        </div>
-
-        {/* Bottom bar with CHIRON link */}
-        <div className="flex justify-center pb-2">
-          <a
-            href="https://linktr.ee/chiron_dev"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-mono text-blue-400 animate-pulse cursor-pointer"
-            style={{
-              filter: "drop-shadow(0 0 8px #3b82f6)",
-              transition: "filter 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.filter = "drop-shadow(0 0 16px #60a5fa)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.filter = "drop-shadow(0 0 8px #3b82f6)";
-            }}
-          >
-            Built by CHIRON
-          </a>
+          </motion.a>
         </div>
       </div>
     </motion.nav>
