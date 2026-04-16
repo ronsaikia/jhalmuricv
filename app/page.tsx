@@ -244,7 +244,7 @@ export default function Home() {
           particleCount: 100,
           spread: 70,
           origin: { y: 0.6 },
-          colors: ["#22c55e", "#3b82f6", "#f97316"],
+          colors: ["#22c55e", "#e8441a", "#1a1a1a"],
         });
       }
 
@@ -265,7 +265,7 @@ export default function Home() {
   // Show invalid document error screen
   if (invalidDocError) {
     return (
-      <main className="min-h-screen bg-background overflow-x-hidden">
+      <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
         <Navbar />
 
         <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center">
@@ -274,36 +274,39 @@ export default function Home() {
             animate={{ opacity: 1, scale: 1 }}
             className="max-w-md w-full"
           >
-            <div className="glass-strong rounded-2xl p-8 text-center border border-red-500/30">
-              {/* Pulsing Clown/Warning Emoji */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.2, 1],
-                  rotate: [0, -5, 5, -5, 0],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatDelay: 0.5,
-                }}
-                className="text-8xl mb-6"
-              >
+            {/* Neo-brutalist card */}
+            <div className="bg-white border-4 border-[#1a1a1a] p-8 text-center relative"
+              style={{ boxShadow: '8px 8px 0px #1a1a1a' }}
+            >
+              {/* Clown Emoji */}
+              <div className="text-8xl mb-6">
                 🤡
-              </motion.div>
+              </div>
 
-              <h2 className="text-2xl font-bold text-red-400 mb-4">
+              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-4 font-mono">
                 Invalid Document
               </h2>
 
-              <p className="text-lg text-accent-slate mb-8 italic">
+              <p className="text-lg text-[#1a1a1a] mb-8 italic font-bold">
                 &ldquo;{invalidDocError.message}&rdquo;
               </p>
 
+              {/* Neo-brutalist button */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{
+                  x: 2,
+                  y: 2,
+                  boxShadow: '2px 2px 0px #1a1a1a'
+                }}
+                whileTap={{
+                  x: 4,
+                  y: 4,
+                  boxShadow: '0px 0px 0px #1a1a1a'
+                }}
                 onClick={handleRetry}
-                className="btn-primary flex items-center justify-center gap-2 mx-auto"
+                className="w-full px-6 py-4 bg-[#e8441a] text-white font-bold text-lg
+                         border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
               >
                 <RotateCcw className="w-5 h-5" />
                 Galti ho gayi, asli resume upload karunga 😭
@@ -316,7 +319,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-background overflow-x-hidden">
+    <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
       <Navbar />
 
       {isLoading && <LoadingRoast />}
@@ -339,20 +342,33 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-center"
+                className="mt-4 p-4 bg-[#ef4444] text-white font-bold border-3 border-[#1a1a1a]"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
               >
                 {error}
               </motion.div>
             )}
 
-            {/* Action Buttons */}
+            {/* Action Buttons - NEOBRUTALIST */}
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+              {/* Roast My Resume - Primary */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{
+                  x: 2,
+                  y: 2,
+                  boxShadow: '2px 2px 0px #1a1a1a'
+                }}
+                whileTap={{
+                  x: 4,
+                  y: 4,
+                  boxShadow: '0px 0px 0px #1a1a1a'
+                }}
                 onClick={handleAnalyze}
                 disabled={isLoading || !selectedFile}
-                className="btn-primary text-lg flex items-center justify-center gap-2"
+                className="px-8 py-4 bg-[#e8441a] text-white font-bold text-lg
+                         border-4 border-[#1a1a1a] flex items-center justify-center gap-2
+                         disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
               >
                 {isLoading ? (
                   <>
@@ -369,19 +385,28 @@ export default function Home() {
                   </>
                 ) : (
                   <>
-                  <Flame className="w-5 h-5" />
+                    <Flame className="w-5 h-5" />
                     Roast My Resume
                   </>
                 )}
               </motion.button>
 
+              {/* Try Demo - Secondary */}
               <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{
+                  x: 2,
+                  y: 2,
+                  boxShadow: '2px 2px 0px #1a1a1a'
+                }}
+                whileTap={{
+                  x: 4,
+                  y: 4,
+                  boxShadow: '0px 0px 0px #1a1a1a'
+                }}
                 onClick={handleDemo}
-                className="px-6 py-4 border border-navy-700 text-accent-slate font-medium rounded-lg
-                         transition-all duration-300 hover:border-electric-600 hover:text-white
-                         active:scale-95 flex items-center justify-center gap-2"
+                className="px-8 py-4 bg-white text-[#1a1a1a] font-bold text-lg
+                         border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
               >
                 <Sparkles className="w-5 h-5" />
                 Try Demo
@@ -390,10 +415,7 @@ export default function Home() {
           </div>
 
           {/* Marquee Strip */}
-          <div className="mt-20 overflow-hidden relative">
-            {/* Electric blue glow behind */}
-            <div className="absolute inset-0 bg-electric-500/10 blur-3xl" />
-
+          <div className="mt-20 overflow-hidden relative border-y-2 border-[#1a1a1a] py-4 bg-white">
             <div className="relative flex overflow-hidden">
               <motion.div
                 className="flex whitespace-nowrap animate-marquee"
@@ -402,9 +424,9 @@ export default function Home() {
                 {Array(2).fill(null).map((_, setIndex) => (
                   <div key={setIndex} className="flex items-center">
                     {["ANALYZE", "SCORE", "IMPROVE", "ROAST", "ANALYZE", "SCORE", "IMPROVE", "ROAST"].map((text, i) => (
-                      <span key={i} className="text-electric-500 text-xl md:text-2xl font-mono mx-6">
+                      <span key={i} className="text-[#e8441a] text-lg sm:text-xl md:text-2xl font-mono mx-4 sm:mx-6 font-bold">
                         {text}
-                        <span className="text-accent-slate mx-6">•</span>
+                        <span className="text-[#1a1a1a] mx-4 sm:mx-6">•</span>
                       </span>
                     ))}
                   </div>
@@ -421,19 +443,10 @@ export default function Home() {
             className="mt-16 text-center"
           >
             <a
-              href="https://linktr.ee/chiron_dev"
+              href="https://linktr.ee/_chironnnn_"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-mono text-blue-400 hover:text-blue-300 transition-colors"
-              style={{
-                filter: "drop-shadow(0 0 8px #3b82f6)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.filter = "drop-shadow(0 0 16px #60a5fa)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.filter = "drop-shadow(0 0 8px #3b82f6)";
-              }}
+              className="text-sm font-mono font-bold text-[#e8441a] hover:text-[#d63b14] transition-colors border-b-2 border-[#e8441a]"
             >
               Built by CHIRON
             </a>

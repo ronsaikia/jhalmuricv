@@ -27,19 +27,19 @@ export default function CategoryCard({
     if (p >= 80)
       return {
         bg: "bg-green-500",
-        text: "text-green-500",
-        border: "border-green-500",
+        text: "text-green-600",
+        border: "border-green-600",
       };
     if (p >= 50)
       return {
         bg: "bg-yellow-500",
-        text: "text-yellow-500",
+        text: "text-yellow-600",
         border: "border-yellow-500",
       };
     return {
       bg: "bg-red-500",
-      text: "text-red-500",
-      border: "border-red-500",
+      text: "text-red-600",
+      border: "border-red-600",
     };
   };
 
@@ -50,17 +50,16 @@ export default function CategoryCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className={`card-chunky cursor-pointer ${
-        isExpanded ? "border-electric-500" : ""
-      }`}
+      className="bg-white border-4 border-[#1a1a1a] p-5 cursor-pointer"
+      style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
       onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex-1">
-          <h3 className="font-mono font-bold text-lg text-white">{label.title}</h3>
+          <h3 className="font-mono font-bold text-lg text-[#1a1a1a]">{label.title}</h3>
           {/* Hinglish Subtitle */}
-          <p className="text-sm text-accent-slate/70 mt-1 truncate">
+          <p className="text-sm text-[#6b6b6b] mt-1 truncate font-medium">
             {label.subtitle}
           </p>
         </div>
@@ -74,15 +73,15 @@ export default function CategoryCard({
             animate={{ rotate: isExpanded ? 180 : 0 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronDown className="w-5 h-5 text-accent-slate" />
+            <ChevronDown className="w-5 h-5 text-[#1a1a1a]" />
           </motion.div>
         </div>
       </div>
 
-      {/* Progress Bar - thicker, flat color */}
-      <div className="h-1.5 rounded-full bg-navy-800 overflow-hidden mb-3">
+      {/* Progress Bar - neo-brutalist */}
+      <div className="h-3 bg-[#e8e4df] overflow-hidden border-2 border-[#1a1a1a] mb-3">
         <motion.div
-          className={`h-full rounded-full ${colors.bg}`}
+          className={`h-full ${colors.bg}`}
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 1, delay: index * 0.1 + 0.3 }}
@@ -90,7 +89,7 @@ export default function CategoryCard({
       </div>
 
       {/* Feedback */}
-      <p className="text-sm text-accent-slate line-clamp-2">{data.feedback}</p>
+      <p className="text-sm text-[#1a1a1a] font-medium">{data.feedback}</p>
 
       {/* Expanded Content */}
       <AnimatePresence>
@@ -102,13 +101,13 @@ export default function CategoryCard({
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="pt-4 space-y-4 border-t border-navy-700 mt-4">
+            <div className="pt-4 space-y-4 border-t-3 border-[#1a1a1a] mt-4">
               {/* Issues */}
               {data.issues.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-4 h-4 text-red-400" />
-                    <span className="text-sm font-medium text-red-400">
+                    <AlertCircle className="w-4 h-4 text-red-600" />
+                    <span className="text-sm font-bold text-red-600">
                       Issues
                     </span>
                   </div>
@@ -116,9 +115,9 @@ export default function CategoryCard({
                     {data.issues.map((issue, i) => (
                       <li
                         key={i}
-                        className="text-sm text-accent-slate flex items-start gap-2"
+                        className="text-sm text-[#1a1a1a] flex items-start gap-2 font-medium"
                       >
-                        <ArrowRight className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                        <ArrowRight className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
                         {issue}
                       </li>
                     ))}
@@ -130,8 +129,8 @@ export default function CategoryCard({
               {data.suggestions.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Lightbulb className="w-4 h-4 text-electric-500" />
-                    <span className="text-sm font-medium text-electric-500">
+                    <Lightbulb className="w-4 h-4 text-[#e8441a]" />
+                    <span className="text-sm font-bold text-[#e8441a]">
                       Suggestions
                     </span>
                   </div>
@@ -139,9 +138,9 @@ export default function CategoryCard({
                     {data.suggestions.map((suggestion, i) => (
                       <li
                         key={i}
-                        className="text-sm text-accent-slate flex items-start gap-2"
+                        className="text-sm text-[#1a1a1a] flex items-start gap-2 font-medium"
                       >
-                        <ArrowRight className="w-4 h-4 text-electric-500 flex-shrink-0 mt-0.5" />
+                        <ArrowRight className="w-4 h-4 text-[#e8441a] flex-shrink-0 mt-0.5" />
                         {suggestion}
                       </li>
                     ))}

@@ -52,51 +52,37 @@ export default function UploadZone({
 
   return (
     <div className="w-full max-w-2xl mx-auto">
-      {/* Terminal Window Container */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="relative rounded-xl overflow-hidden"
+      {/* Neo-brutalist Card Container */}
+      <div
+        className="bg-white border-4 border-[#1a1a1a] p-6 sm:p-10 relative"
+        style={{ boxShadow: '8px 8px 0px #1a1a1a' }}
       >
-        {/* Terminal Header */}
-        <div className="glass border-b-0 rounded-t-xl">
-          <div className="terminal-dots">
-            <div className="terminal-dot terminal-dot-red" />
-            <div className="terminal-dot terminal-dot-yellow" />
-            <div className="terminal-dot terminal-dot-green" />
-          </div>
-        </div>
-
         {/* Upload Zone */}
         <div
           {...getRootProps()}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className={`
-            relative border-2 border-dashed border-navy-700 bg-navy-900/50
-            rounded-b-xl p-8 sm:p-12 transition-all duration-300 cursor-pointer
-            ${isDragActive ? "border-electric-500 bg-electric-500/5" : ""}
-            ${isHovered ? "border-electric-600" : ""}
-            ${hasError ? "border-red-500 bg-red-500/5" : ""}
+            relative border-4 border-dashed rounded-none transition-all duration-100 cursor-pointer
+            ${isDragActive
+              ? "border-[#e8441a] bg-[#e8441a]/5"
+              : "border-[#1a1a1a] bg-white"
+            }
+            ${isHovered ? "border-[#e8441a]" : ""}
+            ${hasError ? "border-red-500 bg-red-50" : ""}
+            p-8 sm:p-12
           `}
         >
           <input {...getInputProps()} />
 
-          {/* Animated Border Gradient */}
+          {/* Animated Border - neo-brutalist style */}
           {(isDragActive || isHovered) && (
-            <motion.div
-              layoutId="border-glow"
-              className="absolute inset-0 rounded-b-xl pointer-events-none"
+            <div
+              className="absolute inset-0 pointer-events-none"
               style={{
-                background:
-                  "linear-gradient(90deg, #2563eb, #3b82f6, #2563eb)",
-                backgroundSize: "200% 100%",
-                opacity: 0.3,
-                filter: "blur(8px)",
+                background: "#e8441a",
+                opacity: 0.1,
               }}
-              animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
-              transition={{ duration: 3, repeat: Infinity }}
             />
           )}
 
@@ -109,34 +95,40 @@ export default function UploadZone({
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="relative z-10 flex flex-col items-center gap-4"
               >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center"
+                <div
+                  className="w-16 h-16 bg-green-100 flex items-center justify-center border-4 border-green-600"
                 >
-                  <Check className="w-8 h-8 text-green-500" />
-                </motion.div>
+                  <Check className="w-8 h-8 text-green-600" />
+                </div>
 
                 <div className="text-center">
-                  <p className="text-white font-medium flex items-center gap-2 justify-center">
-                    <File className="w-4 h-4 text-electric-500" />
+                  <p className="text-[#1a1a1a] font-bold flex items-center gap-2 justify-center">
+                    <File className="w-4 h-4 text-[#e8441a]" />
                     {selectedFile.name}
                   </p>
-                  <p className="text-sm text-accent-slate mt-1">
+                  <p className="text-sm text-[#6b6b6b] mt-1 font-bold">
                     {formatFileSize(selectedFile.size)}
                   </p>
                 </div>
 
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{
+                    x: 1,
+                    y: 1,
+                    boxShadow: '1px 1px 0px #1a1a1a'
+                  }}
+                  whileTap={{
+                    x: 2,
+                    y: 2,
+                    boxShadow: '0px 0px 0px #1a1a1a'
+                  }}
                   onClick={(e) => {
                     e.stopPropagation();
                     onClearFile();
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-red-400
-                           hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-red-600
+                           border-3 border-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                  style={{ boxShadow: '2px 2px 0px #ef4444' }}
                 >
                   <X className="w-4 h-4" />
                   Remove file
@@ -159,25 +151,26 @@ export default function UploadZone({
                     repeat: Infinity,
                     ease: "easeInOut",
                   }}
-                  className="w-16 h-16 rounded-full bg-navy-800 flex items-center justify-center"
+                  className="w-16 h-16 bg-[#f0ede8] flex items-center justify-center border-4 border-[#1a1a1a]"
+                  style={{ boxShadow: '3px 3px 0px #1a1a1a' }}
                 >
                   <Upload
                     className={`w-8 h-8 transition-colors ${
-                      isDragActive ? "text-electric-500" : "text-accent-slate"
+                      isDragActive ? "text-[#e8441a]" : "text-[#1a1a1a]"
                     }`}
                   />
                 </motion.div>
 
                 <div className="text-center">
-                  <p className="text-white font-medium">
+                  <p className="text-[#1a1a1a] font-bold text-lg">
                     {isDragActive
                       ? "Drop your resume here!"
                       : "Drop your resume PDF here"}
                   </p>
-                  <p className="text-sm text-accent-slate mt-1">
+                  <p className="text-sm text-[#6b6b6b] mt-1 font-bold">
                     or click to browse files
                   </p>
-                  <p className="text-xs text-accent-slate/60 mt-2">
+                  <p className="text-xs text-[#6b6b6b]/60 mt-2 font-mono">
                     PDF only, max 5MB
                   </p>
                 </div>
@@ -185,7 +178,7 @@ export default function UploadZone({
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
 
       {/* Error Messages */}
       <AnimatePresence>
@@ -194,7 +187,8 @@ export default function UploadZone({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mt-4 flex items-center gap-2 text-red-400 text-sm"
+            className="mt-4 flex items-center gap-2 text-red-600 text-sm font-bold bg-red-50 border-3 border-red-600 p-3"
+            style={{ boxShadow: '3px 3px 0px #ef4444' }}
           >
             <AlertCircle className="w-4 h-4" />
             <span>

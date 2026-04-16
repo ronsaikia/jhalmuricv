@@ -33,7 +33,8 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="card-glass flex flex-col items-center justify-center p-6"
+        className="bg-white border-4 border-[#1a1a1a] p-8 flex flex-col items-center justify-center"
+        style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
       >
         <div className="relative" style={{ width: size, height: size }}>
           <svg
@@ -46,7 +47,7 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="#1e3a5f"
+              stroke="#e8e4df"
               strokeWidth={strokeWidth}
             />
             <motion.circle
@@ -67,11 +68,11 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
             <span className="text-3xl font-bold font-mono" style={{ color }}>
               {score}%
             </span>
-            <span className="text-xs text-accent-slate">ATS Score</span>
+            <span className="text-xs text-[#1a1a1a] font-bold">ATS Score</span>
           </div>
         </div>
 
-        <p className="mt-4 text-sm text-accent-slate text-center">
+        <p className="mt-4 text-sm text-[#1a1a1a] text-center font-medium">
           Keyword match rate for Applicant Tracking Systems
         </p>
       </motion.div>
@@ -83,12 +84,13 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="card-glass"
+          className="bg-white border-4 border-[#1a1a1a] p-5"
+          style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <h4 className="font-medium text-white">Keywords Found</h4>
-            <span className="ml-auto text-sm text-green-500 font-mono">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <h4 className="font-bold text-[#1a1a1a]">Keywords Found</h4>
+            <span className="ml-auto text-sm text-green-600 font-mono font-bold bg-green-100 px-2 py-1 border-2 border-green-600">
               {found.length}
             </span>
           </div>
@@ -100,14 +102,13 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + i * 0.05 }}
-                className="px-2.5 py-1 text-sm rounded-full bg-green-500/20
-                         text-green-400 border border-green-500/30"
+                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 font-bold border-2 border-green-600"
               >
                 {keyword}
               </motion.span>
             ))}
             {found.length === 0 && (
-              <p className="text-sm text-accent-slate">
+              <p className="text-sm text-[#1a1a1a] font-medium">
                 No common ATS keywords found
               </p>
             )}
@@ -119,12 +120,13 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="card-glass"
+          className="bg-[#f0ede8] border-4 border-[#1a1a1a] p-5"
+          style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Search className="w-5 h-5 text-accent-slate" />
-            <h4 className="font-medium text-white">Keywords Missing</h4>
-            <span className="ml-auto text-sm text-accent-slate font-mono">
+            <Search className="w-5 h-5 text-[#1a1a1a]" />
+            <h4 className="font-bold text-[#1a1a1a]">Keywords Missing</h4>
+            <span className="ml-auto text-sm text-[#1a1a1a] font-mono font-bold bg-white px-2 py-1 border-2 border-[#1a1a1a]">
               {missing.length}
             </span>
           </div>
@@ -136,14 +138,14 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + i * 0.05 }}
-                className="px-2.5 py-1 text-sm rounded-full bg-navy-800
-                         text-accent-slate border border-navy-700"
+                className="px-3 py-1.5 text-sm bg-white text-[#1a1a1a] font-bold border-2 border-[#1a1a1a]"
+                style={{ boxShadow: '2px 2px 0px #1a1a1a' }}
               >
                 {keyword}
               </motion.span>
             ))}
             {missing.length === 0 && (
-              <p className="text-sm text-accent-slate">
+              <p className="text-sm text-[#1a1a1a] font-medium">
                 Great job! You have most relevant keywords
               </p>
             )}

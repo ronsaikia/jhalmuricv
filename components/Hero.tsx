@@ -12,49 +12,51 @@ export default function Hero() {
         transition={{ duration: 0.6 }}
         className="space-y-2 text-left md:text-left"
       >
-        <h1 className="text-editorial font-bold text-white" style={{ fontSize: 'clamp(48px, 8vw, 96px)' }}>
+        <h1 className="text-editorial font-bold text-[#1a1a1a]" style={{ fontSize: 'clamp(48px, 8vw, 96px)' }}>
           Get Your Resume
         </h1>
-        <h1 className="text-editorial font-bold text-gradient-fire underline-accent" style={{ fontSize: 'clamp(48px, 8vw, 96px)' }}>
+        <h1 className="text-editorial font-bold text-gradient-fire" style={{ fontSize: 'clamp(48px, 8vw, 96px)' }}>
           Roasted 🔥
         </h1>
       </motion.div>
 
-      {/* Subheading Badge */}
+      {/* Subheading Badge - Neo-brutalist */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.6 }}
       >
-        <span className="badge-pill border-electric-500 text-electric-500">
+        <span className="inline-flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#e8441a] text-[#e8441a] font-bold font-mono text-xs uppercase tracking-wider"
+          style={{ boxShadow: '3px 3px 0px #e8441a' }}
+        >
           AI-POWERED • BRUTAL • HONEST
         </span>
       </motion.div>
 
-      {/* Three Stats */}
+      {/* Three Stats - Neo-brutalist cards */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="flex items-center gap-6 md:gap-12 pt-4"
+        className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 md:gap-12 pt-4"
       >
-        <div className="text-left">
-          <div className="text-4xl md:text-5xl font-bold text-white font-mono">7</div>
-          <div className="text-sm text-accent-slate mt-1">Categories</div>
+        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+          <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1a1a] font-mono">7</div>
+          <div className="text-sm text-[#1a1a1a] mt-1 font-bold">Categories</div>
         </div>
 
-        <div className="w-px h-12 bg-navy-700" />
+        <div className="hidden sm:block w-px h-12 bg-[#1a1a1a]" />
 
-        <div className="text-left">
-          <div className="text-4xl md:text-5xl font-bold text-white font-mono">100</div>
-          <div className="text-sm text-accent-slate mt-1">Points</div>
+        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+          <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1a1a] font-mono">100</div>
+          <div className="text-sm text-[#1a1a1a] mt-1 font-bold">Points</div>
         </div>
 
-        <div className="w-px h-12 bg-navy-700" />
+        <div className="hidden sm:block w-px h-12 bg-[#1a1a1a]" />
 
-        <div className="text-left">
-          <div className="text-4xl md:text-5xl font-bold text-white font-mono">0</div>
-          <div className="text-sm text-accent-slate mt-1">Mercy</div>
+        <div className="bg-[#e8441a] border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+          <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white font-mono">0</div>
+          <div className="text-sm text-white mt-1 font-bold">Mercy</div>
         </div>
       </motion.div>
     </div>

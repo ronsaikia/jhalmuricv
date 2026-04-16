@@ -1,11 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
 import Anthropic from "@anthropic-ai/sdk";
 import { SYSTEM_PROMPT, ANALYSIS_PROMPT } from "@/lib/analyzePrompt";
+
+// PDF-parse requires Node.js runtime
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+// Check API key at startup
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error("ANTHROPIC_API_KEY is not set!");
+}
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
+
+// Use require for pdf-parse - more reliable in Next.js API routes
+function parsePDF(buffer: Buffer): Promise<{ text: string }> {
+  return new Promise((resolve, reject) => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require("pdf-parse");
+      pdfParse(buffer).then(resolve).catch(reject);
+    } catch (error) {
+      reject(new Error("Failed to load PDF parser: " + (error as Error).message));
+    }
+  });
+}
 
 // Function to check if text looks like a resume
 function looksLikeResume(text: string): boolean {
@@ -57,6 +78,14 @@ const invalidDocumentMessages = [
 ];
 
 export async function POST(request: NextRequest) {
+  // Check API key early
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { error: "Server configuration error: API key not configured" },
+      { status: 500 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("resume") as File | null;
@@ -92,7 +121,7 @@ export async function POST(request: NextRequest) {
     // Parse PDF text
     let pdfText: string;
     try {
-      const data = await pdfParse(buffer);
+      const data = await parsePDF(buffer);
       pdfText = data.text;
     } catch (parseError) {
       console.error("PDF parsing error:", parseError);

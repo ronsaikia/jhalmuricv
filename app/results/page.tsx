@@ -7,7 +7,6 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Flame,
   ArrowRight,
   Share2,
   Copy,
@@ -48,10 +47,13 @@ function Toast({ message, subMessage, isVisible, onClose }: ToastProps) {
           transition={{ duration: 0.3 }}
           className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none"
         >
-          <div className="glass-strong px-6 py-4 rounded-xl border border-green-500/50 pointer-events-auto mx-4">
-            <p className="text-white font-medium text-center">{message}</p>
+          <div
+            className="bg-white px-6 py-4 pointer-events-auto mx-4 border-4 border-green-600"
+            style={{ boxShadow: '4px 4px 0px #22c55e' }}
+          >
+            <p className="text-[#1a1a1a] font-bold text-center">{message}</p>
             {subMessage && (
-              <p className="text-sm text-accent-slate text-center mt-1">{subMessage}</p>
+              <p className="text-sm text-[#6b6b6b] text-center mt-1 font-medium">{subMessage}</p>
             )}
           </div>
         </motion.div>
@@ -98,14 +100,14 @@ export default function ResultsPage() {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
+      <main className="min-h-screen bg-[#f0ede8] flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            className="w-12 h-12 border-4 border-electric-500 border-t-transparent rounded-full mx-auto mb-4"
+            className="w-12 h-12 border-4 border-[#1a1a1a] border-t-[#e8441a] rounded-full mx-auto mb-4"
           />
-          <p className="text-accent-slate">Loading results...</p>
+          <p className="text-[#1a1a1a] font-bold">Loading results...</p>
         </div>
       </main>
     );
@@ -125,13 +127,13 @@ export default function ResultsPage() {
     <div style={{ minHeight: '100vh', height: 'fit-content', overflow: 'hidden' }}>
       <Navbar />
 
-      <main className="min-h-screen bg-background overflow-x-hidden">
+      <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
         <div className="pt-24 pb-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto flex flex-col gap-16 overflow-hidden">
             {/* Section 1: Roast Header */}
             <section className="text-center">
-              {/* Score Gauge - FIRST */}
-              <div className="flex justify-center mb-6">
+              {/* Score Gauge - Fixed spacing with py-12 */}
+              <div className="py-12 flex justify-center">
                 <ScoreGauge score={analysis.overallScore} showLabel={false} />
               </div>
 
@@ -140,12 +142,12 @@ export default function ResultsPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="text-lg font-medium text-white mb-6"
+                className="text-lg font-bold text-[#1a1a1a] mb-6"
               >
                 Overall Score
               </motion.p>
 
-              {/* Indian Score Reaction Badge */}
+              {/* Score Reaction Badge - Neo-brutalist pill */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -153,20 +155,15 @@ export default function ResultsPage() {
                 className="flex justify-center mb-8"
               >
                 <div
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full glass-strong border ${
-                    analysis.overallScore >= 86
-                      ? "border-amber-400/50 shadow-lg shadow-amber-400/20"
-                      : analysis.overallScore >= 71
-                      ? "border-green-500/50"
-                      : analysis.overallScore >= 51
-                      ? "border-yellow-500/50"
-                      : analysis.overallScore >= 31
-                      ? "border-orange-500/50"
-                      : "border-red-500/50"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-6 py-3 bg-white border-4 border-[#1a1a1a] font-mono font-bold`}
+                  style={{
+                    boxShadow: '4px 4px 0px #1a1a1a',
+                    borderColor: analysis.overallScore >= 70 ? '#22c55e' :
+                                analysis.overallScore >= 50 ? '#eab308' : '#ef4444'
+                  }}
                 >
-                  <span className="text-xl">{scoreReaction.emoji}</span>
-                  <span className={`font-mono font-medium ${scoreReaction.color}`}>
+                  <span className="text-2xl">{scoreReaction.emoji}</span>
+                  <span style={{ color: scoreReaction.color }}>
                     {scoreReaction.text}
                   </span>
                 </div>
@@ -178,7 +175,7 @@ export default function ResultsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-8"
               >
-                <span className="text-6xl md:text-8xl text-electric-500 font-serif">"</span>
+                <span className="text-6xl md:text-8xl text-[#e8441a] font-serif">"</span>
                 <h1
                   className="text-3xl sm:text-4xl md:text-5xl font-bold text-gradient-fire inline"
                   style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}
@@ -187,32 +184,26 @@ export default function ResultsPage() {
                 </h1>
               </motion.div>
 
-              {/* Roast Quote Card */}
+              {/* Roast Quote Card - Neo-brutalist */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 className="max-w-2xl mx-auto"
               >
-                <div className="rounded-xl overflow-hidden">
-                  <div className="glass">
-                    <div className="terminal-dots border-b border-navy-700">
-                      <div className="terminal-dot terminal-dot-red" />
-                      <div className="terminal-dot terminal-dot-yellow" />
-                      <div className="terminal-dot terminal-dot-green" />
-                    </div>
-                    <div className="p-6">
-                      <p className="text-lg text-accent-slate italic">
-                        &ldquo;{analysis.roastQuote}&rdquo;
-                        <span className="inline-block w-2 h-5 bg-accent-slate ml-1 animate-blink-cursor" />
-                      </p>
-                    </div>
-                  </div>
+                <div
+                  className="bg-white border-4 border-[#1a1a1a] p-6 sm:p-8"
+                  style={{ boxShadow: '6px 6px 0px #1a1a1a' }}
+                >
+                  <p className="text-lg text-[#1a1a1a] italic font-medium">
+                    &ldquo;{analysis.roastQuote}&rdquo;
+                    <span className="inline-block w-2 h-6 bg-[#e8441a] ml-1 animate-blink-cursor" />
+                  </p>
                 </div>
               </motion.div>
             </section>
 
-            {/* Section 2: Score Breakdown - Editorial Header */}
+            {/* Section 2: Score Breakdown */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -220,14 +211,14 @@ export default function ResultsPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <p className="text-xs font-mono text-accent-slate/60 uppercase tracking-widest mb-2">
+                <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   // SCORE_BREAKDOWN
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-white">Score Breakdown</h2>
-                <p className="text-accent-slate mt-1">Detailed analysis across 7 key dimensions</p>
+                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Score Breakdown</h2>
+                <p className="text-[#1a1a1a] mt-1 font-medium">Detailed analysis across 7 key dimensions</p>
               </motion.div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {categoryEntries.map(([key, data], index) => (
                   <CategoryCard
                     key={key}
@@ -239,7 +230,7 @@ export default function ResultsPage() {
               </div>
             </section>
 
-            {/* Section 3: Section Detection - Editorial Header */}
+            {/* Section 3: Section Detection */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -247,14 +238,14 @@ export default function ResultsPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <p className="text-xs font-mono text-accent-slate/60 uppercase tracking-widest mb-2">
+                <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   // SECTION_DETECTION
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-white">Section Detection</h2>
-                <p className="text-accent-slate mt-1">Which sections we found in your resume</p>
+                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Section Detection</h2>
+                <p className="text-[#1a1a1a] mt-1 font-medium">Which sections we found in your resume</p>
               </motion.div>
 
-              <div className="card-chunky">
+              <div className="bg-white border-4 border-[#1a1a1a] p-6" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
                   {Object.entries(analysis.detectedSections).map(
                     ([section, detected], index) => (
@@ -263,20 +254,20 @@ export default function ResultsPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.05 }}
-                        className={`flex flex-col items-center gap-2 p-4 rounded-lg ${
+                        className={`flex flex-col items-center gap-2 p-4 border-3 ${
                           detected
-                            ? "bg-green-500/10 border border-green-500/30"
-                            : "bg-navy-800/50 border border-navy-700"
+                            ? "bg-green-100 border-green-600"
+                            : "bg-[#e8e4df] border-[#1a1a1a]"
                         }`}
                       >
                         {detected ? (
-                          <CheckCircle className="w-6 h-6 text-green-500" />
+                          <CheckCircle className="w-6 h-6 text-green-600" />
                         ) : (
-                          <XCircle className="w-6 h-6 text-red-400" />
+                          <XCircle className="w-6 h-6 text-red-500" />
                         )}
                         <span
-                          className={`text-sm text-center ${
-                            detected ? "text-white" : "text-accent-slate"
+                          className={`text-sm text-center font-bold ${
+                            detected ? "text-[#1a1a1a]" : "text-[#6b6b6b]"
                           }`}
                         >
                           {
@@ -295,15 +286,15 @@ export default function ResultsPage() {
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className="mt-6 flex items-center gap-3 p-4 rounded-lg bg-yellow-500/10
-                             border border-yellow-500/30"
+                    className="mt-6 flex items-center gap-3 p-4 bg-yellow-100 border-3 border-yellow-600"
+                    style={{ boxShadow: '3px 3px 0px #eab308' }}
                   >
-                    <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                    <AlertCircle className="w-5 h-5 text-yellow-700 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-yellow-500">
+                      <p className="text-sm font-bold text-yellow-800">
                         Missing Important Sections:
                       </p>
-                      <p className="text-sm text-accent-slate">
+                      <p className="text-sm text-[#1a1a1a] font-medium">
                         {analysis.missingSections.join(", ")}
                       </p>
                     </div>
@@ -312,7 +303,7 @@ export default function ResultsPage() {
               </div>
             </section>
 
-            {/* Section 4: ATS Compatibility - Editorial Header */}
+            {/* Section 4: ATS Compatibility */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -320,17 +311,17 @@ export default function ResultsPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <p className="text-xs font-mono text-accent-slate/60 uppercase tracking-widest mb-2">
+                <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   // ATS_COMPATIBILITY
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-white">ATS Compatibility</h2>
-                <p className="text-accent-slate mt-1">How well your resume performs with Applicant Tracking Systems</p>
+                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">ATS Compatibility</h2>
+                <p className="text-[#1a1a1a] mt-1 font-medium">How well your resume performs with Applicant Tracking Systems</p>
               </motion.div>
 
               <ATSChecker data={analysis.atsKeywords} />
             </section>
 
-            {/* Section 5: Strengths vs Critical Fixes - Editorial Header */}
+            {/* Section 5: Strengths vs Critical Fixes */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -338,10 +329,10 @@ export default function ResultsPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <p className="text-xs font-mono text-accent-slate/60 uppercase tracking-widest mb-2">
+                <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   // FEEDBACK
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-white">The Good vs The Ugly</h2>
+                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">The Good vs The Ugly</h2>
               </motion.div>
 
               <FeedbackSection
@@ -350,7 +341,7 @@ export default function ResultsPage() {
               />
             </section>
 
-            {/* Section 6: Action Plan - Editorial Header + Task List */}
+            {/* Section 6: Action Plan */}
             <section>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -358,40 +349,40 @@ export default function ResultsPage() {
                 viewport={{ once: true }}
                 className="mb-8"
               >
-                <p className="text-xs font-mono text-accent-slate/60 uppercase tracking-widest mb-2">
+                <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   // ACTION_PLAN
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-white">Your Action Plan</h2>
-                <p className="text-accent-slate mt-1">Prioritized steps to improve your resume</p>
+                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Your Action Plan</h2>
+                <p className="text-[#1a1a1a] mt-1 font-medium">Prioritized steps to improve your resume</p>
               </motion.div>
 
-              <div className="border-t border-navy-700">
+              <div className="bg-white border-4 border-[#1a1a1a]" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
                 {analysis.actionPlan.map((action, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="group flex items-center gap-4 py-4 border-b border-navy-700
-                             hover:border-l-4 hover:border-l-electric-500 hover:pl-3
-                             transition-all duration-200"
+                    className={`group flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-4 px-4
+                             hover:bg-[#f0ede8] transition-colors
+                             ${index !== analysis.actionPlan.length - 1 ? 'border-b-3 border-[#1a1a1a]' : ''}`}
                   >
-                    <span className="font-mono text-accent-slate/40 text-sm w-8">
+                    <span className="font-mono text-[#1a1a1a] text-sm w-8 font-bold">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                     <span
-                      className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${
+                      className={`px-3 py-1 text-xs font-bold uppercase border-2 ${
                         action.priority === "HIGH"
-                          ? "bg-red-500 text-white"
+                          ? "bg-red-500 text-white border-red-700"
                           : action.priority === "MEDIUM"
-                          ? "bg-yellow-500 text-black"
-                          : "bg-electric-500 text-white"
+                          ? "bg-yellow-500 text-black border-yellow-700"
+                          : "bg-[#e8441a] text-white border-[#d63b14]"
                       }`}
                     >
                       {action.priority}
                     </span>
-                    <span className="text-white flex-1">{action.action}</span>
-                    <ArrowRight className="w-4 h-4 text-accent-slate/0 group-hover:text-electric-500 transition-colors" />
+                    <span className="text-[#1a1a1a] flex-1 min-w-0 break-words font-medium">{action.action}</span>
+                    <ArrowRight className="w-4 h-4 text-[#1a1a1a]/0 group-hover:text-[#e8441a] transition-colors flex-shrink-0" />
                   </motion.div>
                 ))}
               </div>
@@ -403,12 +394,13 @@ export default function ResultsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="card-chunky py-12 px-8"
+                className="bg-white border-4 border-[#1a1a1a] py-12 px-4 sm:px-8"
+                style={{ boxShadow: '6px 6px 0px #1a1a1a' }}
               >
-                <h2 className="text-2xl font-bold text-white mb-4">
+                <h2 className="text-2xl font-bold text-[#1a1a1a] mb-4">
                   Ready to make your resume fire? 🔥
                 </h2>
-                <p className="text-accent-slate mb-8 max-w-lg mx-auto">
+                <p className="text-[#1a1a1a] mb-8 max-w-lg mx-auto font-medium">
                   Download your complete roast report and start implementing these
                   improvements today.
                 </p>
@@ -418,17 +410,25 @@ export default function ResultsPage() {
 
                   {/* Share Roast Button */}
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{
+                      x: 2,
+                      y: 2,
+                      boxShadow: '2px 2px 0px #1a1a1a'
+                    }}
+                    whileTap={{
+                      x: 4,
+                      y: 4,
+                      boxShadow: '0px 0px 0px #1a1a1a'
+                    }}
                     onClick={handleShare}
-                    className="px-6 py-4 border border-navy-700 text-accent-slate font-medium rounded-lg
-                             transition-all duration-300 hover:border-electric-600 hover:text-white
-                             active:scale-95 flex items-center justify-center gap-2"
+                    className="px-8 py-4 bg-white text-[#1a1a1a] font-bold text-lg
+                             border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
+                    style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
                   >
                     {copied ? (
                       <>
-                        <Copy className="w-5 h-5 text-green-500" />
-                        <span className="text-green-500">Copied!</span>
+                        <Copy className="w-5 h-5 text-green-600" />
+                        <span className="text-green-600">Copied!</span>
                       </>
                     ) : (
                       <>

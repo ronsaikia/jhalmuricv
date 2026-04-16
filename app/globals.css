@@ -3,12 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #020817;
-  --foreground: #ffffff;
-  --card-bg: #0d1b2e;
-  --card-border: #1e3a5f;
-  --accent-blue: #2563eb;
-  --accent-slate: #94a3b8;
+  --background: #f0ede8;
+  --foreground: #1a1a1a;
+  --card-bg: #ffffff;
+  --card-border: #1a1a1a;
+  --accent-primary: #e8441a;
+  --accent-secondary: #d63b14;
+  --text-muted: #6b6b6b;
 }
 
 * {
@@ -17,7 +18,6 @@
 
 html, body {
   overflow-x: hidden;
-  height: auto !important;
   min-height: 100vh;
 }
 
@@ -36,37 +36,88 @@ body {
     text-wrap: balance;
   }
 
+  /* NEO-BRUTALIST Button Styles */
+  .brutal-btn {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0px #1a1a1a;
+    transition: all 0.1s ease;
+    font-weight: 700;
+  }
+
+  .brutal-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+
+  .brutal-btn:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #1a1a1a;
+  }
+
+  .brutal-btn-primary {
+    background: #e8441a;
+    color: #ffffff;
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0px #1a1a1a;
+    transition: all 0.1s ease;
+    font-weight: 700;
+  }
+
+  .brutal-btn-primary:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+
+  .brutal-btn-primary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #1a1a1a;
+  }
+
+  .brutal-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 4px 4px 0px #1a1a1a;
+  }
+
+  /* Neo-brutalist Card */
+  .brutal-card {
+    background: #ffffff;
+    border: 3px solid #1a1a1a;
+    box-shadow: 6px 6px 0px #1a1a1a;
+    transition: all 0.15s ease;
+  }
+
+  .brutal-card:hover {
+    box-shadow: 8px 8px 0px #1a1a1a;
+    transform: translate(-2px, -2px);
+  }
+
+  /* Legacy glass styles - deprecated but kept for compatibility */
   .glass {
-    background: rgba(13, 27, 46, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(30, 58, 95, 0.5);
+    background: rgba(255, 255, 255, 0.95);
+    border: 3px solid #1a1a1a;
+    box-shadow: 4px 4px 0px #1a1a1a;
   }
 
   .glass-strong {
-    background: rgba(13, 27, 46, 0.9);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(30, 58, 95, 0.8);
+    background: rgba(255, 255, 255, 0.98);
+    border: 3px solid #1a1a1a;
+    box-shadow: 6px 6px 0px #1a1a1a;
   }
 
-  .glow-blue {
-    box-shadow: 0 0 30px rgba(37, 99, 235, 0.3);
-  }
-
-  .glow-blue-strong {
-    box-shadow: 0 0 40px rgba(37, 99, 235, 0.5);
-  }
-
+  /* Updated gradients for light theme */
   .text-gradient {
-    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #6b6b6b 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .text-gradient-fire {
-    background: linear-gradient(135deg, #f97316 0%, #ef4444 50%, #dc2626 100%);
+    background: linear-gradient(135deg, #e8441a 0%, #d63b14 50%, #c4310e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -74,21 +125,6 @@ body {
 
   .border-gradient {
     position: relative;
-  }
-
-  .border-gradient::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 2px;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb);
-    background-size: 200% 100%;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: gradient-shift 3s ease infinite;
   }
 
   .terminal-dots {
@@ -101,6 +137,7 @@ body {
     width: 12px;
     height: 12px;
     border-radius: 50%;
+    border: 2px solid #1a1a1a;
   }
 
   .terminal-dot-red {
@@ -126,15 +163,27 @@ body {
 }
 
 @layer components {
+  /* Updated button styles - NEOBRUTALIST */
   .btn-primary {
-    @apply px-8 py-4 bg-electric-600 text-white font-semibold rounded-lg
-           transition-all duration-300 hover:bg-electric-500 hover:glow-blue-strong
-           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply px-8 py-4 bg-[#e8441a] text-white font-bold border-3 border-[#1a1a1a]
+           transition-all duration-100;
+    box-shadow: 4px 4px 0px #1a1a1a;
   }
 
+  .btn-primary:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #1a1a1a;
+  }
+
+  .btn-primary:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0px 0px 0px #1a1a1a;
+  }
+
+  /* Legacy card styles - updated to neobrutalist */
   .card-glass {
-    @apply glass rounded-xl p-6 transition-all duration-300
-           hover:border-electric-600/50;
+    @apply bg-white border-3 border-[#1a1a1a] p-6;
+    box-shadow: 4px 4px 0px #1a1a1a;
   }
 
   .score-ring {
@@ -142,11 +191,11 @@ body {
   }
 
   .progress-bar {
-    @apply h-2 rounded-full bg-navy-800 overflow-hidden;
+    @apply h-3 bg-[#e8e4df] overflow-hidden border-2 border-[#1a1a1a];
   }
 
   .progress-fill {
-    @apply h-full rounded-full transition-all duration-1000 ease-out;
+    @apply h-full transition-all duration-1000 ease-out;
   }
 }
 
@@ -163,9 +212,9 @@ body {
 .animate-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(37, 99, 235, 0) 0%,
-    rgba(37, 99, 235, 0.3) 50%,
-    rgba(37, 99, 235, 0) 100%
+    rgba(232, 68, 26, 0) 0%,
+    rgba(232, 68, 26, 0.3) 50%,
+    rgba(232, 68, 26, 0) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
@@ -190,10 +239,10 @@ body {
 /* Spark particle animation */
 .spark-particle {
   position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #f97316;
-  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+  background: #e8441a;
+  border: 2px solid #1a1a1a;
   pointer-events: none;
 }
 
@@ -209,21 +258,6 @@ body {
 
 .animate-blink-cursor {
   animation: blink-cursor 0.7s infinite;
-}
-
-/* Section header accent bar animation */
-@keyframes grow-height {
-  from {
-    transform: scaleY(0);
-  }
-  to {
-    transform: scaleY(1);
-  }
-}
-
-.animate-grow-height {
-  animation: grow-height 0.6s ease-out forwards;
-  transform-origin: top;
 }
 
 /* Toast slide up animation */
@@ -282,17 +316,18 @@ body {
   animation: marquee 20s linear infinite;
 }
 
-/* Gumroad-inspired chunky card borders */
+/* Card styles - NEOBRUTALIST */
 .card-chunky {
-  background: #0d1b2e;
-  border: 2px solid #1e3a5f;
-  border-radius: 12px;
+  background: #ffffff;
+  border: 3px solid #1a1a1a;
   padding: 24px;
-  transition: border-color 0.2s ease, transform 0.2s ease;
+  box-shadow: 4px 4px 0px #1a1a1a;
+  transition: all 0.15s ease;
 }
+
 .card-chunky:hover {
-  border-color: #2563eb;
-  transform: translateY(-2px);
+  box-shadow: 6px 6px 0px #1a1a1a;
+  transform: translate(-2px, -2px);
 }
 
 /* Bold editorial text style */
@@ -302,34 +337,29 @@ body {
   line-height: 1.1;
 }
 
-/* Thick underline accent */
-.underline-accent {
-  text-decoration: underline;
-  text-decoration-color: #2563eb;
-  text-decoration-thickness: 3px;
-  text-underline-offset: 4px;
-}
-
-/* Pill badge */
+/* Pill badge - NEOBRUTALIST */
 .badge-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 999px;
-  border: 1.5px solid;
+  border: 2px solid #1a1a1a;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   font-family: var(--font-space-mono), monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  color: #1a1a1a;
+  background: #ffffff;
+  box-shadow: 2px 2px 0px #1a1a1a;
 }
 
-/* Thick left border variations */
+/* Thick left border variations - NEOBRUTALIST */
 .border-left-green {
-  border-left: 4px solid #22c55e;
+  border-left: 6px solid #22c55e;
 }
 
 .border-left-red {
-  border-left: 4px solid #ef4444;
+  border-left: 6px solid #ef4444;
 }

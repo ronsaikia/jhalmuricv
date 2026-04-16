@@ -31,15 +31,8 @@ export default function ScoreGauge({
     return "#22c55e"; // Green
   };
 
-  const getGlowColor = (s: number): string => {
-    if (s <= 40) return "rgba(239, 68, 68, 0.5)";
-    if (s <= 70) return "rgba(234, 179, 8, 0.5)";
-    return "rgba(34, 197, 94, 0.5)";
-  };
-
   const color = getColor(score);
-  const glowColor = getGlowColor(score);
-  const trackColor = color + "4D"; // 30% opacity in hex
+  const trackColor = "#e8e4df";
 
   // Animate score counting
   useEffect(() => {
@@ -66,38 +59,16 @@ export default function ScoreGauge({
 
   return (
     <div className="relative flex flex-col items-center">
-      {/* Container - perfectly circular */}
+      {/* Container - neo-brutalist style */}
       <div
-        className="relative rounded-full"
+        className="bg-white border-4 border-[#1a1a1a] p-6 relative"
         style={{
-          width: size,
-          height: size,
-          borderRadius: "50%",
-          overflow: "visible",
+          width: size + 48,
+          height: size + 48,
+          boxShadow: '6px 6px 0px #1a1a1a'
         }}
       >
-        {/* Outer glow effect */}
-        <motion.div
-          className="absolute inset-0 rounded-full pointer-events-none"
-          style={{
-            boxShadow: `0 0 60px ${glowColor}, 0 0 100px ${glowColor}`,
-            borderRadius: "50%",
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-        />
-
-        {/* Inner shadow ring for depth */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            borderRadius: "50%",
-            boxShadow: "inset 0 0 30px rgba(0, 0, 0, 0.4), inset 0 0 60px rgba(0, 0, 0, 0.2)",
-          }}
-        />
-
-        {/* SVG Gauge - overflow visible for glow */}
+        {/* SVG Gauge */}
         <svg
           width={size}
           height={size}
@@ -105,19 +76,7 @@ export default function ScoreGauge({
           className="transform -rotate-90"
           style={{ overflow: "visible" }}
         >
-          <defs>
-            {/* Glow filter for progress circle */}
-            <filter id={`glow-${score}`} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Background Track Circle - using score color with 30% opacity */}
+          {/* Background Track Circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -128,17 +87,7 @@ export default function ScoreGauge({
             strokeLinecap="round"
           />
 
-          {/* Inner shadow ring (SVG) */}
-          <circle
-            cx={size / 2}
-            cy={size / 2}
-            r={radius - strokeWidth / 2 - 2}
-            fill="none"
-            stroke="rgba(0, 0, 0, 0.3)"
-            strokeWidth={1}
-          />
-
-          {/* Progress Circle with glow filter */}
+          {/* Progress Circle */}
           <motion.circle
             cx={size / 2}
             cy={size / 2}
@@ -151,7 +100,6 @@ export default function ScoreGauge({
             initial={{ strokeDashoffset: circumference }}
             animate={{ strokeDashoffset: strokeDashoffset }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            filter={`url(#glow-${score})`}
           />
         </svg>
 
@@ -166,7 +114,7 @@ export default function ScoreGauge({
           >
             {displayScore}
           </motion.span>
-          <span className="text-sm text-accent-slate mt-1">/100</span>
+          <span className="text-sm text-[#6b6b6b] mt-1 font-bold">/100</span>
         </div>
       </div>
 
@@ -176,7 +124,7 @@ export default function ScoreGauge({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="mt-4 text-lg font-medium text-white"
+          className="mt-6 text-lg font-bold text-[#1a1a1a]"
         >
           {label}
         </motion.p>

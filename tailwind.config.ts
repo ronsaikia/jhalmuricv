@@ -11,22 +11,32 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        navy: {
-          950: "#020817",
-          900: "#0d1b2e",
-          800: "#1e3a5f",
-          700: "#2d4a6f",
+        // Neumorphic theme colors
+        neu: {
+          bg: "#f0ede8",
+          shadow: "#d4c8bb",
+          light: "#ffffff",
         },
-        electric: {
-          500: "#3b82f6",
-          600: "#2563eb",
-        },
+        // Accent colors - orange-red
         accent: {
-          slate: "#94a3b8",
-          orange: "#f97316",
+          primary: "#e8441a",
+          secondary: "#d63b14",
+          slate: "#6b6b6b",
+          orange: "#e8441a",
           red: "#ef4444",
           yellow: "#eab308",
           green: "#22c55e",
+        },
+        // Legacy colors - kept for compatibility
+        navy: {
+          950: "#f0ede8",
+          900: "#f0ede8",
+          800: "#e8e4df",
+          700: "#d4c8bb",
+        },
+        electric: {
+          500: "#e8441a",
+          600: "#d63b14",
         },
       },
       fontFamily: {
@@ -45,8 +55,8 @@ const config: Config = {
       },
       keyframes: {
         "pulse-glow": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(37, 99, 235, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(37, 99, 235, 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(232, 68, 26, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(232, 68, 26, 0.6)" },
         },
         "gradient-shift": {
           "0%, 100%": { backgroundPosition: "0% 50%" },
@@ -76,7 +86,7 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "gradient-border": "linear-gradient(90deg, #2563eb, #3b82f6, #2563eb)",
+        "gradient-border": "linear-gradient(90deg, #e8441a, #d63b14, #e8441a)",
       },
     },
   },

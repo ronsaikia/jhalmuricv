@@ -30,69 +30,33 @@ export default function LoadingRoast() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-navy-950/95 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0ede8]"
     >
-      {/* Background Sparks */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-1 h-1 bg-orange-500 rounded-full"
-            initial={{
-              x: `${50 + (Math.random() - 0.5) * 40}%`,
-              y: `${50 + (Math.random() - 0.5) * 40}%`,
-              scale: 0,
-              opacity: 1,
-            }}
-            animate={{
-              y: `${50 + (Math.random() - 0.5) * 60 - 20}%`,
-              scale: [0, 1, 0],
-              opacity: [1, 1, 0],
-            }}
-            transition={{
-              duration: 2 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-              ease: "easeOut",
-            }}
-          />
-        ))}
+      {/* Background Pattern */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `repeating-linear-gradient(
+            0deg,
+            #1a1a1a 0,
+            #1a1a1a 2px,
+            transparent 2px,
+            transparent 30px
+          )`
+        }} />
       </div>
 
       <div className="relative z-10 flex flex-col items-center gap-8">
-        {/* Animated Fire Emoji */}
-        <motion.div
-          className="relative"
-          animate={{
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, -5, 0],
-          }}
-          transition={{
-            duration: 0.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
+        {/* Static Emoji with brutalist border */}
+        <div
+          className="text-8xl bg-white border-4 border-[#1a1a1a] p-6"
+          style={{ boxShadow: '6px 6px 0px #1a1a1a' }}
         >
-          <span className="text-8xl">🔥</span>
-
-          {/* Fire Glow Effect */}
-          <motion.div
-            className="absolute inset-0 blur-2xl bg-orange-500/30 rounded-full"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3],
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          />
-        </motion.div>
+          🔥
+        </div>
 
         {/* Loading Text */}
         <div className="text-center space-y-4">
-          <h3 className="text-2xl font-bold font-mono">
+          <h3 className="text-2xl font-bold font-mono text-[#1a1a1a]">
             Roasting Your Resume...
           </h3>
 
@@ -105,7 +69,7 @@ export default function LoadingRoast() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="text-accent-slate font-mono"
+                className="text-[#1a1a1a] font-mono font-bold"
               >
                 {loadingMessages[currentIndex]}
               </motion.p>
@@ -113,10 +77,10 @@ export default function LoadingRoast() {
           </div>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-64 h-1 bg-navy-800 rounded-full overflow-hidden">
+        {/* Progress Bar - neo-brutalist */}
+        <div className="w-64 h-4 bg-white border-3 border-[#1a1a1a] overflow-hidden">
           <motion.div
-            className="h-full bg-gradient-to-r from-orange-500 to-red-500"
+            className="h-full bg-[#e8441a]"
             initial={{ width: "0%" }}
             animate={{
               width: ["0%", "100%", "0%"],
