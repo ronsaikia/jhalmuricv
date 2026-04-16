@@ -6,147 +6,109 @@ import { SYSTEM_PROMPT, ANALYSIS_PROMPT } from "@/lib/analyzePrompt";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-// Check API key at startup
-if (!process.env.GEMINI_API_KEY) {
-  console.error("GEMINI_API_KEY is not set!");
-}
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
 // Sleep helper for retry logic
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Parse PDF with multiple fallback strategies
+// Parse PDF using pure regex approach - no native dependencies
 async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
-  const errors: string[] = [];
-
-  // Strategy 1: Try pdf-parse package (most reliable when it works)
   try {
-    console.log("[PDF Parse] Attempting pdf-parse strategy...");
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const pdfParse = require("pdf-parse");
-    const result = await pdfParse(buffer);
-    if (result.text && result.text.trim().length > 0) {
-      console.log("[PDF Parse] pdf-parse succeeded, extracted", result.text.length, "chars");
-      return { text: result.text };
-    }
-    throw new Error("pdf-parse returned empty text");
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("[PDF Parse] pdf-parse failed:", msg);
-    errors.push(`pdf-parse: ${msg}`);
-  }
+    const pdfString = buffer.toString("latin1");
+    const textParts: string[] = [];
 
-  // Strategy 2: Try pdfjs-dist legacy build
-  try {
-    console.log("[PDF Parse] Attempting pdfjs-dist legacy build...");
-    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-
-    // Disable worker in Node.js
-    pdfjs.GlobalWorkerOptions.workerSrc = "";
-
-    const uint8Array = new Uint8Array(buffer);
-    const loadingTask = pdfjs.getDocument({
-      data: uint8Array,
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    });
-
-    const pdfDocument = await loadingTask.promise;
-    let fullText = "";
-
-    for (let i = 1; i <= pdfDocument.numPages; i++) {
-      const page = await pdfDocument.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item) => (item as { str: string }).str)
-        .filter((str) => str && str.length > 0)
-        .join(" ");
-      fullText += pageText + "\n";
+    // Extract text from BT...ET blocks
+    const btEtRegex = /BT([\s\S]*?)ET/g;
+    let btMatch;
+    while ((btMatch = btEtRegex.exec(pdfString)) !== null) {
+      const block = btMatch[1];
+      // Match Tj operator (single string)
+      const tjRegex = /\(([^)]*)\)\s*Tj/g;
+      let tjMatch;
+      while ((tjMatch = tjRegex.exec(block)) !== null) {
+        textParts.push(tjMatch[1]);
+      }
+      // Match TJ operator (array of strings)
+      const tjArrayRegex = /\[([^\]]*)\]\s*TJ/g;
+      let tjArrayMatch;
+      while ((tjArrayMatch = tjArrayRegex.exec(block)) !== null) {
+        const arrayContent = tjArrayMatch[1];
+        const stringRegex = /\(([^)]*)\)/g;
+        let strMatch;
+        while ((strMatch = stringRegex.exec(arrayContent)) !== null) {
+          textParts.push(strMatch[1]);
+        }
+      }
     }
 
-    if (fullText.trim().length > 0) {
-      console.log("[PDF Parse] pdfjs-dist legacy succeeded, extracted", fullText.length, "chars");
+    // Also try to find plain text streams
+    const streamRegex = /stream\r?\n([\s\S]*?)\r?\nendstream/g;
+    let streamMatch;
+    while ((streamMatch = streamRegex.exec(pdfString)) !== null) {
+      const content = streamMatch[1];
+      if (/[a-zA-Z]{10,}/.test(content)) {
+        // Looks like readable text
+        const words = content.match(/[a-zA-Z][a-zA-Z\s.,@\-+]{3,}/g);
+        if (words) textParts.push(...words);
+      }
+    }
+
+    let fullText = textParts
+      .join(" ")
+      .replace(/\\n/g, "\n")
+      .replace(/\\r/g, "")
+      .replace(/\\t/g, " ")
+      .replace(/\\\(/g, "(")
+      .replace(/\\\)/g, ")")
+      .replace(/\\\\/g, "\\")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (fullText.length > 100) {
+      console.log("[PDF Parse] Regex extraction succeeded, got", fullText.length, "chars");
       return { text: fullText };
     }
-    throw new Error("pdfjs-dist legacy returned empty text");
+
+    throw new Error("Regex extraction yielded insufficient text: " + fullText.length + " chars");
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
-    console.error("[PDF Parse] pdfjs-dist legacy failed:", msg);
-    errors.push(`pdfjs-dist legacy: ${msg}`);
+    console.error("[PDF Parse] Regex strategy failed:", msg);
+    throw new Error("Could not extract text from PDF");
   }
-
-  // Strategy 3: Try pdfjs-dist standard build
-  try {
-    console.log("[PDF Parse] Attempting pdfjs-dist standard build...");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const pdfjs: typeof import("pdfjs-dist") = await import("pdfjs-dist/build/pdf.mjs" as string);
-
-    // Disable worker in Node.js
-    pdfjs.GlobalWorkerOptions.workerSrc = "";
-
-    const uint8Array = new Uint8Array(buffer);
-    const loadingTask = pdfjs.getDocument({
-      data: uint8Array,
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
-    });
-
-    const pdfDocument = await loadingTask.promise;
-    let fullText = "";
-
-    for (let i = 1; i <= pdfDocument.numPages; i++) {
-      const page = await pdfDocument.getPage(i);
-      const textContent = await page.getTextContent();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pageText = textContent.items
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .map((item: any) => item.str as string)
-        .filter((str: string) => str && str.length > 0)
-        .join(" ");
-      fullText += pageText + "\n";
-    }
-
-    if (fullText.trim().length > 0) {
-      console.log("[PDF Parse] pdfjs-dist standard succeeded, extracted", fullText.length, "chars");
-      return { text: fullText };
-    }
-    throw new Error("pdfjs-dist standard returned empty text");
-  } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error);
-    console.error("[PDF Parse] pdfjs-dist standard failed:", msg);
-    errors.push(`pdfjs-dist standard: ${msg}`);
-  }
-
-  // All strategies failed
-  console.error("[PDF Parse] All strategies failed:", errors);
-  throw new Error(`Could not read PDF. Make sure it's not image-only or corrupted.`);
 }
 
-// Retry wrapper for Gemini API call - accepts text prompt or content parts
+// Retry wrapper for Gemini API call
 async function callGeminiWithRetry(
-  prompt: string | Part[],
+  genAI: GoogleGenerativeAI,
+  prompt: string,
+  base64Data?: string,
   retries = 1
 ): Promise<ReturnType<ReturnType<GoogleGenerativeAI["getGenerativeModel"]>["generateContent"]>> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   try {
-    if (typeof prompt === "string") {
-      return await model.generateContent(prompt);
-    } else {
-      // Multimodal: pass content parts with proper content structure
+    if (base64Data) {
+      // Vision mode: send PDF as inline data with text prompt
+      const contentParts: Part[] = [
+        {
+          inlineData: {
+            mimeType: "application/pdf",
+            data: base64Data,
+          },
+        },
+        { text: prompt },
+      ];
       return await model.generateContent({
-        contents: [{ role: "user", parts: prompt }],
+        contents: [{ role: "user", parts: contentParts }],
       });
+    } else {
+      // Text mode: send text prompt only
+      return await model.generateContent(prompt);
     }
   } catch (error) {
     console.error("[Gemini] Initial call failed:", error);
     if (retries > 0) {
       console.log(`[Gemini] Retrying after 1000ms... (${retries} retries left)`);
       await sleep(1000);
-      return callGeminiWithRetry(prompt, retries - 1);
+      return callGeminiWithRetry(genAI, prompt, base64Data, retries - 1);
     }
     throw error;
   }
@@ -204,13 +166,18 @@ const invalidDocumentMessages = [
 export async function POST(request: NextRequest) {
   // Wrap entire handler in try/catch for robustness
   try {
-    // Check API key early
-    if (!process.env.GEMINI_API_KEY) {
+    // Check API key and initialize genAI lazily
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is not set!");
       return NextResponse.json(
         { error: "Server configuration error: API key not configured" },
         { status: 500 }
       );
     }
+
+    // Initialize genAI inside the handler for lazy loading
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     const formData = await request.formData();
     const file = formData.get("resume") as File | null;
@@ -275,20 +242,24 @@ export async function POST(request: NextRequest) {
 
     if (useVisionMode) {
       // Vision mode: send raw PDF to Gemini
-      console.log("[Gemini] Using vision mode with raw PDF");
-      const base64Data = buffer.toString("base64");
+      console.log("[Gemini] Using vision mode with raw PDF, buffer size:", buffer.length);
 
-      const contentParts: Part[] = [
-        {
-          inlineData: {
-            mimeType: "application/pdf",
-            data: base64Data,
-          },
-        },
-        { text: SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT("") },
-      ];
+      // Check if buffer is small enough for inline data (Gemini has limits)
+      let base64Data: string;
+      if (buffer.length > 4 * 1024 * 1024) {
+        // Too large - trim to first 4MB
+        console.log("[Gemini] PDF too large, trimming to 4MB for vision mode");
+        const trimmedBuffer = Buffer.from(buffer.subarray(0, 4 * 1024 * 1024));
+        base64Data = trimmedBuffer.toString("base64");
+      } else {
+        base64Data = buffer.toString("base64");
+      }
 
-      result = await callGeminiWithRetry(contentParts);
+      result = await callGeminiWithRetry(
+        genAI,
+        SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(""),
+        base64Data
+      );
     } else {
       // Text mode: validate it's a resume first
       if (!looksLikeResume(pdfText)) {
@@ -310,6 +281,7 @@ export async function POST(request: NextRequest) {
       // Call Gemini API with text prompt
       console.log("[Gemini] Using text mode with extracted PDF text");
       result = await callGeminiWithRetry(
+        genAI,
         SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
       );
     }
