@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
@@ -31,8 +32,15 @@ export default function Navbar() {
               className="flex items-center gap-2"
               whileHover={{ scale: 1.02 }}
             >
-              <span className="font-mono font-bold text-xl text-[#1a1a1a]">
-                🔥 Resume Roaster
+              <Image 
+                src="/favicon.svg"
+                alt="JhalmuriCV Flame"
+                width={32}
+                height={32}
+                className="inline-block"
+              />
+              <span className="font-mono font-black text-2xl text-[#1a1a1a] tracking-tight">
+                JhalmuriCV
               </span>
             </motion.div>
 

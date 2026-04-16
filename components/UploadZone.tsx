@@ -199,14 +199,6 @@ export default function UploadZone({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Info Note */}
-      <div className="mt-4 flex items-start gap-2 text-[#6b6b6b] text-xs">
-        <Info className="w-4 h-4 flex-shrink-0" />
-        <span>
-          <strong>Note:</strong> Supports both text-based and image-based PDFs. Gemini 2.5 Flash can analyze scanned resumes too!
-        </span>
-      </div>
     </div>
   );
 }

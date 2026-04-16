@@ -16,7 +16,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Resume Roaster 🔥 | AI-Powered Resume Analysis",
+  title: "JhalmuriCV",
   description:
     "Get your resume roasted by AI. Brutal honesty, structured feedback, and real scores to help you land your dream job.",
   keywords: [
@@ -28,14 +28,22 @@ export const metadata: Metadata = {
     "ATS",
     "resume review",
   ],
-  authors: [{ name: "AEC Coding Club" }],
+  authors: [{ name: "CHIRON" }],
   openGraph: {
-    title: "Resume Roaster 🔥",
+    title: "JhalmuriCV",
     description: "AI-powered brutal honesty. Structured feedback. Real scores.",
     type: "website",
   },
   alternates: {
     canonical: "/",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
   },
 };
 

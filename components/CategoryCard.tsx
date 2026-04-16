@@ -67,11 +67,7 @@ function CategoryCard({
       {/* Header */}
       <div className="flex items-center justify-between mb-3 gap-3">
         <div className="flex-1 min-w-0">
-          <h3 className="font-mono font-bold text-lg text-[#1a1a1a] mb-1">{label.title}</h3>
-          {/* Hinglish Subtitle */}
-          <p className="text-sm text-[#6b6b6b] truncate font-medium">
-            {label.subtitle}
-          </p>
+          <h3 className="font-mono font-bold text-lg text-[#1a1a1a]">{label.title}</h3>
         </div>
 
         {/* Score fraction - RIGHT aligned, large */}
@@ -98,8 +94,8 @@ function CategoryCard({
         />
       </div>
 
-      {/* Feedback */}
-      <p className="text-sm text-[#1a1a1a] font-medium">{data.feedback}</p>
+      {/* Feedback - Shows Hinglish subtitle by default */}
+      <p className="text-sm text-[#e8441a] font-bold italic">{label.subtitle}</p>
 
       {/* Expanded Content - Use categoryKey as unique key for AnimatePresence */}
       <AnimatePresence key={`${categoryKey}-presence`}>
@@ -113,6 +109,11 @@ function CategoryCard({
             className="overflow-hidden"
           >
             <div className="pt-4 space-y-4 border-t-3 border-[#1a1a1a] mt-4">
+              {/* Original Feedback - shown when expanded */}
+              <div className="bg-[#f0ede8] p-3 border-2 border-[#1a1a1a]">
+                <p className="text-sm text-[#1a1a1a] font-medium">{data.feedback}</p>
+              </div>
+
               {/* Issues */}
               {data.issues.length > 0 && (
                 <div>

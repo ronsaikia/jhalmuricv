@@ -163,16 +163,16 @@ export default function ResultsPage() {
                 className="flex justify-center mb-8"
               >
                 <div
-                  className={`inline-flex items-center gap-2 px-6 py-3 bg-white border-4 border-[#1a1a1a] font-mono font-bold
-                    hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a] transition-all duration-100 cursor-default`}
+                  className={`inline-flex items-center gap-3 px-6 py-3 bg-white border-4 border-[#1a1a1a] font-mono font-bold text-lg
+                    hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a] transition-all duration-100 cursor-default min-w-[280px] justify-center`}
                   style={{
                     boxShadow: '4px 4px 0px #1a1a1a',
                     borderColor: analysis.overallScore >= 70 ? '#22c55e' :
                                 analysis.overallScore >= 50 ? '#eab308' : '#ef4444'
                   }}
                 >
-                  <span className="text-2xl">{scoreReaction.emoji}</span>
-                  <span style={{ color: scoreReaction.color }}>
+                  <span className="text-2xl leading-none">{scoreReaction.emoji}</span>
+                  <span style={{ color: scoreReaction.color }} className="leading-none">
                     {scoreReaction.text}
                   </span>
                 </div>
@@ -469,6 +469,30 @@ export default function ResultsPage() {
           isVisible={showToast}
           onClose={() => setShowToast(false)}
         />
+
+        {/* Footer - Built by Chiron */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="py-12 text-center"
+        >
+          <a
+            href="https://linktr.ee/_chironnnn_"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#1a1a1a] font-bold font-mono text-sm border-3 border-[#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+            style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a";
+            }}
+          >
+            Built by CHIRON 🔥
+          </a>
+        </motion.div>
       </main>
     </div>
   );

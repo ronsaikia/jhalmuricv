@@ -16,7 +16,7 @@ export default function Hero() {
           Get Your Resume
         </h1>
         <h1 className="text-editorial font-bold text-gradient-fire" style={{ fontSize: 'clamp(48px, 8vw, 96px)' }}>
-          Roasted 🔥
+          Roasted 
         </h1>
       </motion.div>
 

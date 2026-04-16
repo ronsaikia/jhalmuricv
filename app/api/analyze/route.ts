@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, Part } from "@google/generative-ai";
-import { SYSTEM_PROMPT, ANALYSIS_PROMPT } from "@/lib/analyzePrompt";
+import { SYSTEM_PROMPT, ANALYSIS_PROMPT, VISION_ANALYSIS_PROMPT, SIMPLIFIED_JSON_PROMPT } from "@/lib/analyzePrompt";
 
 // PDF parsing requires Node.js runtime
 export const runtime = "nodejs";
@@ -51,7 +51,7 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
       }
     }
 
-    let fullText = textParts
+    const fullText = textParts
       .join(" ")
       .replace(/\\n/g, "\n")
       .replace(/\\r/g, "")
@@ -75,43 +75,71 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
   }
 }
 
-// Retry wrapper for Gemini API call
+// Check if an error indicates a 503/overload/429 condition
+function isOverloadedError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    return (
+      message.includes("503") ||
+      message.includes("429") ||
+      message.includes("overloaded") ||
+      message.includes("rate limit") ||
+      message.includes("too many requests") ||
+      message.includes("resource exhausted") ||
+      message.includes("try again later")
+    );
+  }
+  return false;
+}
+
+// Retry wrapper for Gemini API call with exponential backoff
 async function callGeminiWithRetry(
   genAI: GoogleGenerativeAI,
   prompt: string,
   base64Data?: string,
-  retries = 1
+  maxRetries = 3
 ): Promise<ReturnType<ReturnType<GoogleGenerativeAI["getGenerativeModel"]>["generateContent"]>> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-  try {
-    if (base64Data) {
-      // Vision mode: send PDF as inline data with text prompt
-      const contentParts: Part[] = [
-        {
-          inlineData: {
-            mimeType: "application/pdf",
-            data: base64Data,
+  const delays = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (base64Data) {
+        // Vision mode: send PDF as inline data with text prompt
+        const contentParts: Part[] = [
+          {
+            inlineData: {
+              mimeType: "application/pdf",
+              data: base64Data,
+            },
           },
-        },
-        { text: prompt },
-      ];
-      return await model.generateContent({
-        contents: [{ role: "user", parts: contentParts }],
-      });
-    } else {
-      // Text mode: send text prompt only
-      return await model.generateContent(prompt);
+          { text: prompt },
+        ];
+        return await model.generateContent({
+          contents: [{ role: "user", parts: contentParts }],
+        });
+      } else {
+        // Text mode: send text prompt only
+        return await model.generateContent(prompt);
+      }
+    } catch (error) {
+      console.error(`[Gemini] Attempt ${attempt + 1} failed:`, error);
+
+      // Only retry on 503/overload errors
+      if (attempt < maxRetries && isOverloadedError(error)) {
+        const delay = delays[attempt] || 4000;
+        console.log(`[Gemini] Retrying after ${delay}ms... (${maxRetries - attempt} retries left)`);
+        await sleep(delay);
+        continue;
+      }
+
+      // Don't retry on other errors
+      throw error;
     }
-  } catch (error) {
-    console.error("[Gemini] Initial call failed:", error);
-    if (retries > 0) {
-      console.log(`[Gemini] Retrying after 1000ms... (${retries} retries left)`);
-      await sleep(1000);
-      return callGeminiWithRetry(genAI, prompt, base64Data, retries - 1);
-    }
-    throw error;
   }
+
+  throw new Error("Max retries exceeded");
 }
 
 // Function to check if text looks like a resume
@@ -142,6 +170,26 @@ function looksLikeResume(text: string): boolean {
     "certificate",
     "training",
     "references",
+    // Additional keywords for Indian/tech resumes
+    "gpa",
+    "cgpa",
+    "intern",
+    "developer",
+    "engineer",
+    "b.tech",
+    "btech",
+    "b.e",
+    "mtech",
+    "m.tech",
+    "computer science",
+    "information technology",
+    "software",
+    "coding",
+    "programming",
+    "java",
+    "python",
+    "react",
+    "node",
   ];
 
   const textLower = text.toLowerCase();
@@ -149,18 +197,21 @@ function looksLikeResume(text: string): boolean {
     textLower.includes(kw)
   ).length;
 
-  // If less than 3 resume keywords found, likely not a resume
-  // Also check for minimum length
-  return keywordCount >= 3 && text.length > 300;
+  // Check for name + email pattern (common in resumes)
+  const hasEmailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
+  const hasNamePattern = /[A-Z][a-z]+\s+[A-Z][a-z]+/.test(text);
+
+  // Relaxed criteria: 2+ keywords OR (has name pattern AND email pattern)
+  return keywordCount >= 2 || (hasEmailPattern && hasNamePattern);
 }
 
 // Pool of invalid document messages
 const invalidDocumentMessages = [
   "Bhai, ye resume hai? Bijli ka bill upload kar diya kya?",
   "Uploaded document is as irrelevant as your 1st-year engineering syllabus.",
-  "Did you just upload your Tinder bio? Because HR isn't swiping right on this either.",
+  "Tinder bio de diya kya? Because HR isn't swiping right on this either.",
   "Aadhaar card upload mat kar bhai, job CV pe milti hai.",
-  "System confused: Is this a resume or a grocery list? Go back and upload a real CV.",
+  "Kya Matlab? Kuch bhi upload karega?",
 ];
 
 export async function POST(request: NextRequest) {
@@ -239,51 +290,82 @@ export async function POST(request: NextRequest) {
     }
 
     let result;
+    let visionAttemptCount = 0;
+    let base64Data: string | undefined;
 
+    // Prepare base64 data for vision mode if needed
     if (useVisionMode) {
-      // Vision mode: send raw PDF to Gemini
-      console.log("[Gemini] Using vision mode with raw PDF, buffer size:", buffer.length);
-
-      // Check if buffer is small enough for inline data (Gemini has limits)
-      let base64Data: string;
       if (buffer.length > 4 * 1024 * 1024) {
-        // Too large - trim to first 4MB
         console.log("[Gemini] PDF too large, trimming to 4MB for vision mode");
         const trimmedBuffer = Buffer.from(buffer.subarray(0, 4 * 1024 * 1024));
         base64Data = trimmedBuffer.toString("base64");
       } else {
         base64Data = buffer.toString("base64");
       }
+    }
 
-      result = await callGeminiWithRetry(
-        genAI,
-        SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(""),
-        base64Data
-      );
-    } else {
-      // Text mode: validate it's a resume first
-      if (!looksLikeResume(pdfText)) {
-        const randomMessage =
-          invalidDocumentMessages[Math.floor(Math.random() * invalidDocumentMessages.length)];
-        return NextResponse.json(
-          {
-            status: "invalid_document",
-            message: randomMessage,
-            error: "Invalid document uploaded",
-          },
-          { status: 400 }
-        );
+    // Wrap Gemini calls in a retry loop for 503 errors
+    const maxGeminiAttempts = 3;
+    const delays = [1000, 2000, 4000];
+
+    for (let attempt = 0; attempt < maxGeminiAttempts; attempt++) {
+      try {
+        if (useVisionMode) {
+          // Vision mode: send raw PDF to Gemini
+          console.log("[Gemini] Using vision mode with raw PDF, buffer size:", buffer.length);
+
+          result = await callGeminiWithRetry(
+            genAI,
+            SYSTEM_PROMPT + "\n\n" + VISION_ANALYSIS_PROMPT,
+            base64Data
+          );
+          visionAttemptCount = attempt + 1;
+        } else {
+          // Text mode: validate it's a resume first
+          if (!looksLikeResume(pdfText)) {
+            const randomMessage =
+              invalidDocumentMessages[Math.floor(Math.random() * invalidDocumentMessages.length)];
+            return NextResponse.json(
+              {
+                status: "invalid_document",
+                message: randomMessage,
+                error: "Invalid document uploaded",
+              },
+              { status: 400 }
+            );
+          }
+
+          // Truncate very long resumes to avoid token limits
+          const truncatedText = pdfText.slice(0, 15000);
+
+          // Call Gemini API with text prompt
+          console.log("[Gemini] Using text mode with extracted PDF text");
+          result = await callGeminiWithRetry(
+            genAI,
+            SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
+          );
+        }
+
+        // If we get here, the call succeeded - break out of retry loop
+        break;
+      } catch (error) {
+        console.error(`[Gemini] Handler attempt ${attempt + 1} failed:`, error);
+
+        // Only retry on 503/overload errors
+        if (attempt < maxGeminiAttempts - 1 && isOverloadedError(error)) {
+          const delay = delays[attempt] || 4000;
+          console.log(`[Gemini] Handler retrying after ${delay}ms...`);
+          await sleep(delay);
+          continue;
+        }
+
+        // Don't retry on other errors - throw to outer handler
+        throw error;
       }
+    }
 
-      // Truncate very long resumes to avoid token limits
-      const truncatedText = pdfText.slice(0, 15000);
-
-      // Call Gemini API with text prompt
-      console.log("[Gemini] Using text mode with extracted PDF text");
-      result = await callGeminiWithRetry(
-        genAI,
-        SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
-      );
+    if (!result) {
+      throw new Error("Failed to get Gemini response after all retries");
     }
 
     // Process the response
@@ -311,32 +393,77 @@ export async function POST(request: NextRequest) {
         console.error("JSON parse error:", parseError);
         console.error("Response text:", cleanedText.substring(0, 500));
 
-        // Try to extract JSON from the response if it added extra text
-        try {
-          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            analysis = JSON.parse(jsonMatch[0]);
-            console.log("Successfully extracted JSON from response");
-          } else {
-            throw new Error("No JSON object found in response");
+        // In vision mode, try one more time with a simplified prompt
+        if (useVisionMode && visionAttemptCount > 0 && base64Data) {
+          console.log("[Gemini] Vision mode JSON parse failed, attempting simplified retry...");
+          try {
+            const retryResult = await callGeminiWithRetry(
+              genAI,
+              SYSTEM_PROMPT + "\n\n" + VISION_ANALYSIS_PROMPT + "\n\n" + SIMPLIFIED_JSON_PROMPT,
+              base64Data
+            );
+
+            const retryText = retryResult.response.text().trim();
+            let retryCleaned = retryText;
+            if (retryCleaned.startsWith("```json")) retryCleaned = retryCleaned.slice(7);
+            else if (retryCleaned.startsWith("```")) retryCleaned = retryCleaned.slice(3);
+            if (retryCleaned.endsWith("```")) retryCleaned = retryCleaned.slice(0, -3);
+            retryCleaned = retryCleaned.trim();
+
+            analysis = JSON.parse(retryCleaned);
+            console.log("[Gemini] Simplified retry succeeded");
+          } catch (retryError) {
+            console.error("Simplified retry also failed:", retryError);
+            throw new Error("Failed to parse analysis response after retry");
           }
-        } catch (extractError) {
-          console.error("Failed to extract JSON:", extractError);
-          return NextResponse.json(
-            { error: "Failed to parse analysis response. Please try again." },
-            { status: 500 }
-          );
+        } else {
+          // Try to extract JSON from the response if it added extra text
+          try {
+            const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              analysis = JSON.parse(jsonMatch[0]);
+              console.log("Successfully extracted JSON from response");
+            } else {
+              throw new Error("No JSON object found in response");
+            }
+          } catch (extractError) {
+            console.error("Failed to extract JSON:", extractError);
+            return NextResponse.json(
+              { error: "Failed to parse analysis response. Please try again." },
+              { status: 500 }
+            );
+          }
         }
       }
 
+      // Check for invalid_document status from Gemini (in vision mode)
+      if (analysis.status === "invalid_document") {
+        return NextResponse.json(
+          {
+            status: "invalid_document",
+            message: analysis.message || "This doesn't look like a resume. Please upload a valid CV.",
+            error: "Invalid document uploaded",
+          },
+          { status: 400 }
+        );
+      }
+
       // Validate the response structure
-      if (!analysis.overallScore && analysis.overallScore !== 0) {
+      // Check if overallScore is present and >= 0 - if so, treat as valid response
+      if (typeof analysis.overallScore === "number" && analysis.overallScore >= 0) {
+        return NextResponse.json(analysis);
+      }
+
+      // If overallScore is missing, check for other essential fields
+      if (!analysis.roastHeadline || !analysis.roastQuote) {
         return NextResponse.json(
           { error: "Invalid analysis response structure" },
           { status: 500 }
         );
       }
 
+      // Accept responses even if missingSections is empty or detectedSections has all false values
+      // These are valid for bad resumes
       return NextResponse.json(analysis);
     } catch (apiError) {
       console.error("Error processing Gemini response:", apiError);
@@ -347,8 +474,31 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Unexpected error in POST handler:", error);
+
+    // Check for specific error types to show user-friendly messages
+    const errorMessage = error instanceof Error ? error.message.toLowerCase() : "";
+
+    // Service overload errors - show friendly retry message
+    if (
+      errorMessage.includes("503") ||
+      errorMessage.includes("429") ||
+      errorMessage.includes("overloaded") ||
+      errorMessage.includes("rate limit") ||
+      errorMessage.includes("too many requests") ||
+      errorMessage.includes("resource exhausted")
+    ) {
+      return NextResponse.json(
+        {
+          error: "Our servers are a bit busy right now. Please wait a moment and try again.",
+          retryAfter: 5
+        },
+        { status: 503 }
+      );
+    }
+
+    // Generic error - don't expose technical details
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: "Something went wrong while analyzing your resume. Please try again." },
       { status: 500 }
     );
   }

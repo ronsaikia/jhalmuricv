@@ -208,22 +208,25 @@ function InvalidDocModal({ isOpen, onClose, message }: InvalidDocModalProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          ref={modalRef}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={handleBackdropClick}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.2 }}
-            onClick={(e) => e.stopPropagation()}
-            className="bg-white border-4 border-[#1a1a1a] w-full max-w-md mx-4 overflow-hidden"
-            style={{ boxShadow: "8px 8px 0px #1a1a1a" }}
+          <div
+            ref={modalRef}
+            onClick={handleBackdropClick}
+            className="fixed inset-0 z-50 flex items-center justify-center"
           >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white border-4 border-[#1a1a1a] w-full max-w-md mx-4 overflow-hidden relative"
+              style={{ boxShadow: "8px 8px 0px #1a1a1a" }}
+            >
             {/* Terminal-style header bar */}
             <div className="bg-[#e8441a] px-4 py-3 flex items-center gap-2 border-b-4 border-[#1a1a1a]">
               <div className="w-4 h-4 bg-white border-2 border-[#1a1a1a]" />
@@ -269,7 +272,8 @@ function InvalidDocModal({ isOpen, onClose, message }: InvalidDocModalProps) {
               </motion.button>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
+      </motion.div>
       )}
     </AnimatePresence>
   );
@@ -316,9 +320,9 @@ export default function Home() {
       const formData = new FormData();
       formData.append("resume", selectedFile);
 
-      // Add AbortController with 60-second timeout (vision analysis takes longer)
+      // Add AbortController with 90-second timeout (vision analysis takes longer)
       const controller = new AbortController();
-      timeoutId = setTimeout(() => controller.abort(), 60000);
+      timeoutId = setTimeout(() => controller.abort(), 90000);
 
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -341,7 +345,9 @@ export default function Home() {
 
       // Handle other errors
       if (!response.ok) {
-        throw new Error(data.error || "Failed to analyze resume");
+        // Use server's error message if available, otherwise generic message
+        const serverError = data.error || "Failed to analyze resume";
+        throw new Error(serverError);
       }
 
       // Store analysis in sessionStorage
@@ -360,9 +366,25 @@ export default function Home() {
 
       router.push("/results");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unexpected error occurred"
-      );
+      // Show user-friendly error messages
+      let userMessage = "Something went wrong. Please try again.";
+
+      if (err instanceof Error) {
+        const msg = err.message.toLowerCase();
+
+        // Handle specific error types with friendly messages
+        if (msg.includes("503") || msg.includes("429") || msg.includes("overloaded") || msg.includes("rate limit")) {
+          userMessage = "Our servers are a bit busy right now. Please wait a moment and try again.";
+        } else if (msg.includes("timeout") || msg.includes("abort") || msg.includes("signal")) {
+          userMessage = "The analysis is taking longer than expected. Please try again or use a smaller PDF.";
+        } else if (msg.includes("network") || msg.includes("fetch") || msg.includes("failed")) {
+          userMessage = "Connection issue detected. Please check your internet and try again.";
+        } else if (msg.includes("json") || msg.includes("parse")) {
+          userMessage = "We had trouble reading the response. Please try again.";
+        }
+      }
+
+      setError(userMessage);
       setIsLoading(false);
     } finally {
       // Always clear the timeout
