@@ -38,23 +38,23 @@ export default function Hero() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.6 }}
-        className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 md:gap-12 pt-4"
+        className="flex flex-wrap items-start sm:items-center gap-3 sm:gap-6 pt-4 overflow-x-hidden"
       >
-        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left min-w-[120px] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a] transition-all duration-100" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
           <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1a1a] font-mono">7</div>
           <div className="text-sm text-[#1a1a1a] mt-1 font-bold">Categories</div>
         </div>
 
         <div className="hidden sm:block w-px h-12 bg-[#1a1a1a]" />
 
-        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+        <div className="bg-white border-4 border-[#1a1a1a] px-6 py-4 text-left min-w-[120px] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a] transition-all duration-100" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
           <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#1a1a1a] font-mono">100</div>
           <div className="text-sm text-[#1a1a1a] mt-1 font-bold">Points</div>
         </div>
 
         <div className="hidden sm:block w-px h-12 bg-[#1a1a1a]" />
 
-        <div className="bg-[#e8441a] border-4 border-[#1a1a1a] px-6 py-4 text-left" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+        <div className="bg-[#e8441a] border-4 border-[#1a1a1a] px-6 py-4 text-left min-w-[120px] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a] transition-all duration-100" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
           <div className="text-3xl sm:text-4xl md:text-5xl font-bold text-white font-mono">0</div>
           <div className="text-sm text-white mt-1 font-bold">Mercy</div>
         </div>

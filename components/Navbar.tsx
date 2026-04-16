@@ -58,17 +58,12 @@ export default function Navbar() {
                   }}
                 >
                   <span className="animate-pulse truncate max-w-[100px] sm:max-w-none">
-                    ⚠️ DO NOT REDEEM
+                    NEAR YOU 👀
                   </span>
                 </motion.div>
               </Link>
 
-              {/* Made in India */}
-              <span className="text-xs font-bold text-[#1a1a1a] hidden sm:inline-block font-mono border-2 border-[#1a1a1a] px-2 py-1 bg-white"
-                style={{ boxShadow: '2px 2px 0px #1a1a1a' }}
-              >
-                Made in 🇮🇳
-              </span>
+              
             </div>
           </div>
         </div>

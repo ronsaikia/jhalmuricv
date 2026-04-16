@@ -415,10 +415,10 @@ export default function Home() {
           </div>
 
           {/* Marquee Strip */}
-          <div className="mt-20 overflow-hidden relative border-y-2 border-[#1a1a1a] py-4 bg-white">
+          <div className="mt-20 overflow-hidden relative border-y-2 border-[#1a1a1a] py-4 bg-white group">
             <div className="relative flex overflow-hidden">
               <motion.div
-                className="flex whitespace-nowrap animate-marquee"
+                className="flex whitespace-nowrap animate-marquee group-hover:[animation-play-state:paused]"
                 style={{ fontFamily: 'var(--font-space-mono), monospace' }}
               >
                 {Array(2).fill(null).map((_, setIndex) => (
@@ -446,9 +446,12 @@ export default function Home() {
               href="https://linktr.ee/_chironnnn_"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm font-mono font-bold text-[#e8441a] hover:text-[#d63b14] transition-colors border-b-2 border-[#e8441a]"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#1a1a1a] font-bold font-mono text-sm border-3 border-[#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
+              style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '2px 2px 0px #1a1a1a'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '4px 4px 0px #1a1a1a'; }}
             >
-              Built by CHIRON
+              Built by CHIRON 🔥
             </a>
           </motion.div>
         </div>

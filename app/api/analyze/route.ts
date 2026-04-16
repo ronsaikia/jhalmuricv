@@ -1,31 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { SYSTEM_PROMPT, ANALYSIS_PROMPT } from "@/lib/analyzePrompt";
 
-// PDF-parse requires Node.js runtime
+// PDF parsing requires Node.js runtime
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // Check API key at startup
-if (!process.env.ANTHROPIC_API_KEY) {
-  console.error("ANTHROPIC_API_KEY is not set!");
+if (!process.env.GEMINI_API_KEY) {
+  console.error("GEMINI_API_KEY is not set!");
 }
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Use require for pdf-parse - more reliable in Next.js API routes
-function parsePDF(buffer: Buffer): Promise<{ text: string }> {
-  return new Promise((resolve, reject) => {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pdfParse = require("pdf-parse");
-      pdfParse(buffer).then(resolve).catch(reject);
-    } catch (error) {
-      reject(new Error("Failed to load PDF parser: " + (error as Error).message));
+// Parse PDF using pdfjs-dist
+async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
+  try {
+    // Use legacy build for Node.js compatibility
+    const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+
+    // Convert Buffer to Uint8Array
+    const uint8Array = new Uint8Array(buffer);
+
+    // Load the PDF document
+    const loadingTask = pdfjs.getDocument({
+      data: uint8Array,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    });
+
+    const pdfDocument = await loadingTask.promise;
+
+    // Extract text from all pages
+    let fullText = "";
+    const numPages = pdfDocument.numPages;
+
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdfDocument.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item) => (item as { str: string }).str)
+        .join(" ");
+      fullText += pageText + "\n";
     }
-  });
+
+    return { text: fullText };
+  } catch (error) {
+    console.error("PDF parsing error:", error);
+    throw new Error("Failed to parse PDF: " + (error as Error).message);
+  }
 }
 
 // Function to check if text looks like a resume
@@ -79,7 +103,7 @@ const invalidDocumentMessages = [
 
 export async function POST(request: NextRequest) {
   // Check API key early
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     return NextResponse.json(
       { error: "Server configuration error: API key not configured" },
       { status: 500 }
@@ -156,49 +180,38 @@ export async function POST(request: NextRequest) {
     // Truncate very long resumes to avoid token limits
     const truncatedText = pdfText.slice(0, 15000);
 
-    // Call Claude API
+    // Call Gemini API
     try {
-      const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 4000,
-        system: SYSTEM_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: ANALYSIS_PROMPT(truncatedText),
-          },
-        ],
-      });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const result = await model.generateContent(
+        SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
+      );
+      const analysisText = result.response.text().trim();
 
-      const content = response.content[0];
-      if (content.type !== "text") {
-        throw new Error("Unexpected response type from Claude API");
-      }
-
-      let analysisText = content.text.trim();
+      let cleanedText = analysisText;
 
       // Remove markdown code block markers if present
-      if (analysisText.startsWith("```json")) {
-        analysisText = analysisText.slice(7);
-      } else if (analysisText.startsWith("```")) {
-        analysisText = analysisText.slice(3);
+      if (cleanedText.startsWith("```json")) {
+        cleanedText = cleanedText.slice(7);
+      } else if (cleanedText.startsWith("```")) {
+        cleanedText = cleanedText.slice(3);
       }
-      if (analysisText.endsWith("```")) {
-        analysisText = analysisText.slice(0, -3);
+      if (cleanedText.endsWith("```")) {
+        cleanedText = cleanedText.slice(0, -3);
       }
-      analysisText = analysisText.trim();
+      cleanedText = cleanedText.trim();
 
       // Parse the JSON response
       let analysis;
       try {
-        analysis = JSON.parse(analysisText);
+        analysis = JSON.parse(cleanedText);
       } catch (parseError) {
         console.error("JSON parse error:", parseError);
-        console.error("Response text:", analysisText.substring(0, 500));
+        console.error("Response text:", cleanedText.substring(0, 500));
 
-        // Try to extract JSON from the response if Claude added extra text
+        // Try to extract JSON from the response if it added extra text
         try {
-          const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+          const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
             analysis = JSON.parse(jsonMatch[0]);
             console.log("Successfully extracted JSON from response");
@@ -224,7 +237,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(analysis);
     } catch (apiError) {
-      console.error("Claude API error:", apiError);
+      console.error("Gemini API error:", apiError);
       return NextResponse.json(
         { error: "Analysis failed. Please try again later." },
         { status: 500 }

@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 
 const messages = [
   "Kya dekhne aaya hai yahan? 🤡",
-  "Beta, yeh page nahi tha tera. Apna resume fix kar pehle. 💀",
-  "HR ne tujhe reject kiya, ab yeh page bhi kar raha hai. 🔥",
-  "Teri curiosity hi tera sabse bada weakness hai. Resume pe likh de. 😂",
-  "404: Life goals not found. Resume bhi nahi bana tere se. 💅",
-  "Bhai, ek page pe aaya aur ye bhi samajh nahi aaya? Coding sikhle pehle.",
+  "Beta, yeh page nahi tha tera. Apna resume fix kar pehle💀",
+  "HR ne tujhe reject kiya, ab yeh page bhi kar raha hai",
+  "Teri curiosity hi tera sabse bada weakness hai. Resume pe likh de😂",
+  "404: Life goals not found. Resume bhi nahi bana tere se💅",
+  "Bhai, ek page pe aaya aur ye bhi samajh nahi aaya? Coding sikhle pehle",
 ];
 
-const emojis = ["🤡", "💀", "👻", "🎪"];
+const emojis = ["🤡", "💀"];
 
 // Get a random index based on current hour so it changes periodically but not too frequently
 function getRandomIndex(length: number): number {
@@ -121,8 +121,8 @@ export default function SecretPageClient() {
         </div>
 
         {/* Bottom text */}
-        <p className="text-center text-[#1a1a1a]/50 text-sm mt-6 font-mono font-bold">
-          // Kya socha tha? Kuch milega yahan aake?
+        <p className="text-center text-[#1a1a1a]/70 text-sm mt-6 font-mono font-bold">
+          {'// Kya socha tha? Kuch milega yahan aake?'}
         </p>
       </div>
     </motion.div>

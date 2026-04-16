@@ -17,10 +17,17 @@ export default function CategoryCard({
   data,
   index,
 }: CategoryCardProps) {
+  // Each card has completely isolated state
   const [isExpanded, setIsExpanded] = useState(false);
 
   const percentage = (data.score / data.maxScore) * 100;
   const label = categoryLabels[categoryKey];
+
+  // Handle click with stopPropagation to prevent event bubbling
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsExpanded(!isExpanded);
+  };
 
   // Color based on percentage
   const getColor = (p: number): { bg: string; text: string; border: string } => {
@@ -50,22 +57,22 @@ export default function CategoryCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white border-4 border-[#1a1a1a] p-5 cursor-pointer"
+      className="bg-white border-4 border-[#1a1a1a] p-6 cursor-pointer hover:translate-y-[-1px] transition-transform duration-100"
       style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
-      onClick={() => setIsExpanded(!isExpanded)}
+      onClick={handleClick}
     >
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex-1">
-          <h3 className="font-mono font-bold text-lg text-[#1a1a1a]">{label.title}</h3>
+      <div className="flex items-center justify-between mb-3 gap-3">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-mono font-bold text-lg text-[#1a1a1a] mb-1">{label.title}</h3>
           {/* Hinglish Subtitle */}
-          <p className="text-sm text-[#6b6b6b] mt-1 truncate font-medium">
+          <p className="text-sm text-[#6b6b6b] truncate font-medium">
             {label.subtitle}
           </p>
         </div>
 
         {/* Score fraction - RIGHT aligned, large */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
           <span className={`font-mono font-bold text-2xl ${colors.text}`}>
             {data.score}/{data.maxScore}
           </span>
