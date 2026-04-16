@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, Part } from "@google/generative-ai";
 import { SYSTEM_PROMPT, ANALYSIS_PROMPT } from "@/lib/analyzePrompt";
 
 // PDF parsing requires Node.js runtime
@@ -102,6 +102,7 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
       const textContent = await page.getTextContent();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pageText = textContent.items
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .map((item: any) => item.str as string)
         .filter((str: string) => str && str.length > 0)
         .join(" ");
@@ -124,15 +125,22 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
   throw new Error(`Could not read PDF. Make sure it's not image-only or corrupted.`);
 }
 
-// Retry wrapper for Gemini API call
+// Retry wrapper for Gemini API call - accepts text prompt or content parts
 async function callGeminiWithRetry(
-  prompt: string,
+  prompt: string | Part[],
   retries = 1
 ): Promise<ReturnType<ReturnType<GoogleGenerativeAI["getGenerativeModel"]>["generateContent"]>> {
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   try {
-    return await model.generateContent(prompt);
+    if (typeof prompt === "string") {
+      return await model.generateContent(prompt);
+    } else {
+      // Multimodal: pass content parts with proper content structure
+      return await model.generateContent({
+        contents: [{ role: "user", parts: prompt }],
+      });
+    }
   } catch (error) {
     console.error("[Gemini] Initial call failed:", error);
     if (retries > 0) {
@@ -231,53 +239,83 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
+    // Convert file to buffer with error handling
+    let bytes: ArrayBuffer;
+    try {
+      bytes = await file.arrayBuffer();
+    } catch (readError) {
+      console.error("[PDF Read] Failed to read file:", readError);
+      return NextResponse.json(
+        { error: "Failed to read file. The file may be corrupted." },
+        { status: 400 }
+      );
+    }
     const buffer = Buffer.from(bytes);
 
-    // Parse PDF text
-    let pdfText: string;
+    // Try to parse PDF text
+    let pdfText = "";
+    let useVisionMode = false;
+
     try {
       const data = await parsePDF(buffer);
       pdfText = data.text;
-    } catch (parseError) {
-      console.error("PDF parsing error:", parseError);
-      return NextResponse.json(
-        { error: "Could not read PDF. Make sure it's not image-only or corrupted." },
-        { status: 400 }
-      );
+    } catch {
+      // Text extraction failed - fall back to vision mode
+      console.log("[PDF Parse] Text extraction failed, falling back to vision mode");
+      useVisionMode = true;
     }
 
-    // Check if we have meaningful text
-    if (!pdfText || pdfText.trim().length < 50) {
-      return NextResponse.json(
-        { error: "PDF contains too little text. It may be image-based or scanned." },
-        { status: 400 }
-      );
+    // Check if we have meaningful text - if not, use vision mode
+    if (!useVisionMode && (!pdfText || pdfText.trim().length < 50)) {
+      console.log("[PDF Parse] Text too short (" + (pdfText?.length || 0) + " chars), using vision mode");
+      useVisionMode = true;
     }
 
-    // Validate that this looks like a resume
-    if (!looksLikeResume(pdfText)) {
-      const randomMessage =
-        invalidDocumentMessages[Math.floor(Math.random() * invalidDocumentMessages.length)];
-      return NextResponse.json(
+    let result;
+
+    if (useVisionMode) {
+      // Vision mode: send raw PDF to Gemini
+      console.log("[Gemini] Using vision mode with raw PDF");
+      const base64Data = buffer.toString("base64");
+
+      const contentParts: Part[] = [
         {
-          status: "invalid_document",
-          message: randomMessage,
-          error: "Invalid document uploaded",
+          inlineData: {
+            mimeType: "application/pdf",
+            data: base64Data,
+          },
         },
-        { status: 400 }
-      );
-    }
+        { text: SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT("") },
+      ];
 
-    // Truncate very long resumes to avoid token limits
-    const truncatedText = pdfText.slice(0, 15000);
+      result = await callGeminiWithRetry(contentParts);
+    } else {
+      // Text mode: validate it's a resume first
+      if (!looksLikeResume(pdfText)) {
+        const randomMessage =
+          invalidDocumentMessages[Math.floor(Math.random() * invalidDocumentMessages.length)];
+        return NextResponse.json(
+          {
+            status: "invalid_document",
+            message: randomMessage,
+            error: "Invalid document uploaded",
+          },
+          { status: 400 }
+        );
+      }
 
-    // Call Gemini API with retry
-    try {
-      const result = await callGeminiWithRetry(
+      // Truncate very long resumes to avoid token limits
+      const truncatedText = pdfText.slice(0, 15000);
+
+      // Call Gemini API with text prompt
+      console.log("[Gemini] Using text mode with extracted PDF text");
+      result = await callGeminiWithRetry(
         SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
       );
+    }
+
+    // Process the response
+    try {
       const analysisText = result.response.text().trim();
 
       let cleanedText = analysisText;
@@ -329,7 +367,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(analysis);
     } catch (apiError) {
-      console.error("Gemini API error (after retries):", apiError);
+      console.error("Error processing Gemini response:", apiError);
       return NextResponse.json(
         { error: "Analysis failed. Please try again later." },
         { status: 500 }

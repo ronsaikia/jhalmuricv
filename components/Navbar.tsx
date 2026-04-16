@@ -41,6 +41,7 @@ export default function Navbar() {
               {/* Warning Badge - Button with router.push - NEOBRUTALIST STYLE */}
               <motion.button
                 onClick={handleSecretClick}
+                title="Click to discover who's watching 👀"
                 className="flex items-center gap-2 px-4 py-2 bg-[#ef4444] text-white
                          border-3 border-[#1a1a1a] font-bold font-mono text-xs
                          cursor-pointer select-none"

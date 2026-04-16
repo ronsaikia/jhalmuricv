@@ -77,25 +77,33 @@ export default function ResultsPage() {
         setAnalysis(parsed);
       } catch (e) {
         console.error("Failed to parse analysis from sessionStorage:", e);
+        setIsLoading(false);
         router.push("/");
+        return;
       }
     } else {
       console.error("No analysis found in sessionStorage, redirecting to home");
+      setIsLoading(false);
       router.push("/");
+      return;
     }
     setIsLoading(false);
   }, [router]);
 
-  const handleShare = () => {
+  const handleShare = async () => {
     if (!analysis) return;
 
     const shareText = `I just got roasted by AI — scored ${analysis.overallScore}/100. Apparently my resume is "${analysis.roastHeadline}". Check yours at ${typeof window !== "undefined" ? window.location.origin : ""} 🔥`;
 
-    navigator.clipboard.writeText(shareText).then(() => {
+    try {
+      await navigator.clipboard.writeText(shareText);
       setCopied(true);
       setShowToast(true);
       setTimeout(() => setCopied(false), 3000);
-    });
+    } catch {
+      // Fallback for HTTP or clipboard API failure
+      window.prompt("Copy this:", shareText);
+    }
   };
 
   if (isLoading) {
@@ -133,7 +141,7 @@ export default function ResultsPage() {
             {/* Section 1: Roast Header */}
             <section className="text-center">
               {/* Score Gauge - Fixed spacing with py-12 */}
-              <div className="py-12 flex justify-center">
+              <div className="py-12 flex justify-center overflow-visible">
                 <ScoreGauge score={analysis.overallScore} showLabel={false} />
               </div>
 
@@ -155,7 +163,8 @@ export default function ResultsPage() {
                 className="flex justify-center mb-8"
               >
                 <div
-                  className={`inline-flex items-center gap-2 px-6 py-3 bg-white border-4 border-[#1a1a1a] font-mono font-bold`}
+                  className={`inline-flex items-center gap-2 px-6 py-3 bg-white border-4 border-[#1a1a1a] font-mono font-bold
+                    hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a] transition-all duration-100 cursor-default`}
                   style={{
                     boxShadow: '4px 4px 0px #1a1a1a',
                     borderColor: analysis.overallScore >= 70 ? '#22c55e' :
@@ -184,7 +193,7 @@ export default function ResultsPage() {
                 </h1>
               </motion.div>
 
-              {/* Roast Quote Card - Neo-brutalist */}
+              {/* Roast Quote Card - Neo-brutalist with hover */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -192,7 +201,9 @@ export default function ResultsPage() {
                 className="max-w-2xl mx-auto"
               >
                 <div
-                  className="bg-white border-4 border-[#1a1a1a] p-6 sm:p-8"
+                  className="bg-white border-4 border-[#1a1a1a] p-6 sm:p-8
+                    hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a]
+                    transition-all duration-100 cursor-default"
                   style={{ boxShadow: '6px 6px 0px #1a1a1a' }}
                 >
                   <p className="text-lg text-[#1a1a1a] italic font-medium">
@@ -245,7 +256,9 @@ export default function ResultsPage() {
                 <p className="text-[#1a1a1a] mt-1 font-medium">Which sections we found in your resume</p>
               </motion.div>
 
-              <div className="bg-white border-4 border-[#1a1a1a] p-6" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+              <div className="bg-white border-4 border-[#1a1a1a] p-6 hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a] transition-all duration-100 cursor-default"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+              >
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-4">
                   {Object.entries(analysis.detectedSections).map(
                     ([section, detected], index) => (
@@ -254,11 +267,12 @@ export default function ResultsPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.05 }}
-                        className={`flex flex-col items-center gap-2 p-4 border-3 hover:translate-y-[-1px] transition-transform duration-100 ${
-                          detected
-                            ? "bg-green-100 border-green-600"
-                            : "bg-[#e8e4df] border-[#1a1a1a]"
-                        }`}
+                        className={`flex flex-col items-center gap-2 p-4 border-3
+                          transition-all duration-100 cursor-default
+                          ${detected
+                            ? "bg-green-100 border-green-600 hover:translate-y-[-2px] hover:shadow-[3px_3px_0px_#16a34a]"
+                            : "bg-[#e8e4df] border-[#1a1a1a] hover:translate-y-[-2px] hover:shadow-[3px_3px_0px_#1a1a1a]"
+                          }`}
                       >
                         {detected ? (
                           <CheckCircle className="w-6 h-6 text-green-600" />
@@ -356,7 +370,9 @@ export default function ResultsPage() {
                 <p className="text-[#1a1a1a] mt-1 font-medium">Prioritized steps to improve your resume</p>
               </motion.div>
 
-              <div className="bg-white border-4 border-[#1a1a1a]" style={{ boxShadow: '4px 4px 0px #1a1a1a' }}>
+              <div className="bg-white border-4 border-[#1a1a1a] hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a] transition-all duration-100 cursor-default"
+                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+              >
                 {analysis.actionPlan.map((action, index) => (
                   <motion.div
                     key={index}
@@ -364,8 +380,11 @@ export default function ResultsPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                     className={`flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 py-4 px-4
+                             transition-colors duration-100 hover:bg-[#f0ede8] relative group
                              ${index !== analysis.actionPlan.length - 1 ? 'border-b-3 border-[#1a1a1a]' : ''}`}
                   >
+                    {/* Left accent stripe on hover */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#e8441a] transform scale-y-0 group-hover:scale-y-100 transition-transform duration-100 origin-top" />
                     <span className="font-mono text-[#1a1a1a] text-sm w-8 font-bold">
                       {String(index + 1).padStart(2, '0')}
                     </span>
@@ -392,7 +411,9 @@ export default function ResultsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="bg-white border-4 border-[#1a1a1a] py-12 px-4 sm:px-8"
+                className="bg-white border-4 border-[#1a1a1a] py-12 px-4 sm:px-8
+                  hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_#1a1a1a]
+                  transition-all duration-100 cursor-default"
                 style={{ boxShadow: '6px 6px 0px #1a1a1a' }}
               >
                 <h2 className="text-2xl font-bold text-[#1a1a1a] mb-4">

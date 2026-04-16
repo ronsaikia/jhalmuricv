@@ -43,6 +43,9 @@ const config: Config = {
         mono: ["var(--font-space-mono)", "monospace"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
       },
+      borderWidth: {
+        '3': '3px',
+      },
       animation: {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "gradient-shift": "gradient-shift 3s ease infinite",

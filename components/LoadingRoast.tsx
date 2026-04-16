@@ -69,7 +69,7 @@ export default function LoadingRoast() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="text-[#1a1a1a] font-mono font-bold"
+                className="text-[#e8441a] font-mono font-bold"
               >
                 {loadingMessages[currentIndex]}
               </motion.p>

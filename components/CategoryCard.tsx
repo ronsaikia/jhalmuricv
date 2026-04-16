@@ -58,7 +58,9 @@ function CategoryCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className="bg-white border-4 border-[#1a1a1a] p-6 cursor-pointer hover:translate-y-[-1px] transition-transform duration-100"
+      className="bg-white border-4 border-[#1a1a1a] p-6 cursor-pointer
+        hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_#1a1a1a]
+        transition-all duration-100"
       style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
       onClick={handleClick}
     >

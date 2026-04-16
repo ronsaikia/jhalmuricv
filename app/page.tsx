@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Sparkles, Flame, RotateCcw } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -16,13 +16,17 @@ interface InvalidDocumentError {
   message: string;
 }
 
-const invalidDocumentMessages = [
-  "Bhai, ye resume hai? Bijli ka bill upload kar diya kya?",
-  "Uploaded document is as irrelevant as your 1st-year engineering syllabus.",
-  "Did you just upload your Tinder bio? Because HR isn't swiping right on this either.",
-  "Aadhaar card upload mat kar bhai, job CV pe milti hai.",
-  "System confused: Is this a resume or a grocery list? Go back and upload a real CV.",
+// Hindi/Hinglish button texts for the modal
+const hindiButtonTexts = [
+  "Theek hai bhai, asli wali upload karta hun 😭",
+  "Sorry yaar, galti ho gayi 🙏",
+  "Ek minute, sahi file dhundta hun 💀",
+  "Haan haan, resume upload karta hun abhi 🤡",
+  "Bhai maaf karo, CV laata hun 😬",
 ];
+
+// Emojis for the modal
+const modalEmojis = ["🤡", "💀"];
 
 // Demo data for demo mode - defined outside component to avoid re-creation
 const demoAnalysis: ResumeAnalysis = {
@@ -170,33 +174,130 @@ const demoAnalysis: ResumeAnalysis = {
   ],
 };
 
+// Invalid Document Modal Component
+interface InvalidDocModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  message: string;
+}
+
+function InvalidDocModal({ isOpen, onClose, message }: InvalidDocModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Randomize button text and emoji on each open
+  const [buttonText, setButtonText] = useState("");
+  const [emoji, setEmoji] = useState("");
+
+  useEffect(() => {
+    if (isOpen) {
+      setButtonText(hindiButtonTexts[Math.floor(Math.random() * hindiButtonTexts.length)]);
+      setEmoji(modalEmojis[Math.floor(Math.random() * modalEmojis.length)]);
+    }
+  }, [isOpen]);
+
+  const handleBackdropClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (e.target === modalRef.current) {
+        onClose();
+      }
+    },
+    [onClose]
+  );
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          ref={modalRef}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleBackdropClick}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.85 }}
+            transition={{ duration: 0.2 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white border-4 border-[#1a1a1a] w-full max-w-md mx-4 overflow-hidden"
+            style={{ boxShadow: "8px 8px 0px #1a1a1a" }}
+          >
+            {/* Terminal-style header bar */}
+            <div className="bg-[#e8441a] px-4 py-3 flex items-center gap-2 border-b-4 border-[#1a1a1a]">
+              <div className="w-4 h-4 bg-white border-2 border-[#1a1a1a]" />
+              <div className="w-4 h-4 bg-white border-2 border-[#1a1a1a]" />
+              <div className="w-4 h-4 bg-white border-2 border-[#1a1a1a]" />
+              <span className="ml-auto text-white font-mono font-bold text-sm">
+                invalid_cv.exe
+              </span>
+            </div>
+
+            {/* Modal content */}
+            <div className="p-8 text-center">
+              {/* Large emoji */}
+              <div className="text-8xl mb-6">{emoji}</div>
+
+              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-4 font-mono">
+                Invalid Document
+              </h2>
+
+              <p className="text-lg text-[#1a1a1a] mb-8 italic font-bold">
+                &ldquo;{message}&rdquo;
+              </p>
+
+              {/* Neo-brutalist button */}
+              <motion.button
+                whileHover={{
+                  x: 2,
+                  y: 2,
+                  boxShadow: "2px 2px 0px #1a1a1a",
+                }}
+                whileTap={{
+                  x: 4,
+                  y: 4,
+                  boxShadow: "0px 0px 0px #1a1a1a",
+                }}
+                onClick={onClose}
+                className="w-full px-6 py-4 bg-[#e8441a] text-white font-bold text-lg
+                         border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
+                style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
+              >
+                <RotateCcw className="w-5 h-5" />
+                {buttonText}
+              </motion.button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invalidDocError, setInvalidDocError] = useState<InvalidDocumentError | null>(null);
-  const [isScanError, setIsScanError] = useState(false);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setError(null);
     setInvalidDocError(null);
-    setIsScanError(false);
   };
 
   const handleClearFile = () => {
     setSelectedFile(null);
     setError(null);
     setInvalidDocError(null);
-    setIsScanError(false);
   };
 
   const handleRetry = () => {
     setSelectedFile(null);
     setError(null);
     setInvalidDocError(null);
-    setIsScanError(false);
   };
 
   const handleAnalyze = async () => {
@@ -208,15 +309,16 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setInvalidDocError(null);
-    setIsScanError(false);
+
+    let timeoutId: NodeJS.Timeout | null = null;
 
     try {
       const formData = new FormData();
       formData.append("resume", selectedFile);
 
-      // Add AbortController with 30-second timeout
+      // Add AbortController with 60-second timeout (vision analysis takes longer)
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      timeoutId = setTimeout(() => controller.abort(), 60000);
 
       const response = await fetch("/api/analyze", {
         method: "POST",
@@ -224,37 +326,22 @@ export default function Home() {
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
-
       const data = await response.json();
 
       // Check for invalid document error
       if (data.status === "invalid_document") {
-        const randomMessage =
-          invalidDocumentMessages[
-            Math.floor(Math.random() * invalidDocumentMessages.length)
-          ];
+        // Use server-provided message directly (no re-randomizing)
         setInvalidDocError({
           status: "invalid_document",
-          message: randomMessage,
+          message: data.message,
         });
         setIsLoading(false);
         return;
       }
 
-      // Check for scan/image-based PDF error
+      // Handle other errors
       if (!response.ok) {
-        const errorMsg = data.error || "";
-        if (
-          errorMsg.includes("Could not read PDF") ||
-          errorMsg.includes("image-based") ||
-          errorMsg.includes("scanned")
-        ) {
-          setIsScanError(true);
-          setIsLoading(false);
-          return;
-        }
-        throw new Error(errorMsg || "Failed to analyze resume");
+        throw new Error(data.error || "Failed to analyze resume");
       }
 
       // Store analysis in sessionStorage
@@ -277,6 +364,11 @@ export default function Home() {
         err instanceof Error ? err.message : "An unexpected error occurred"
       );
       setIsLoading(false);
+    } finally {
+      // Always clear the timeout
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   };
 
@@ -285,67 +377,18 @@ export default function Home() {
     router.push("/results");
   };
 
-  // Show invalid document error screen
-  if (invalidDocError) {
-    return (
-      <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
-        <Navbar />
-
-        <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 min-h-screen flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md w-full"
-          >
-            {/* Neo-brutalist card */}
-            <div className="bg-white border-4 border-[#1a1a1a] p-8 text-center relative"
-              style={{ boxShadow: '8px 8px 0px #1a1a1a' }}
-            >
-              {/* Clown Emoji */}
-              <div className="text-8xl mb-6">
-                🤡
-              </div>
-
-              <h2 className="text-2xl font-bold text-[#1a1a1a] mb-4 font-mono">
-                Invalid Document
-              </h2>
-
-              <p className="text-lg text-[#1a1a1a] mb-8 italic font-bold">
-                &ldquo;{invalidDocError.message}&rdquo;
-              </p>
-
-              {/* Neo-brutalist button */}
-              <motion.button
-                whileHover={{
-                  x: 2,
-                  y: 2,
-                  boxShadow: '2px 2px 0px #1a1a1a'
-                }}
-                whileTap={{
-                  x: 4,
-                  y: 4,
-                  boxShadow: '0px 0px 0px #1a1a1a'
-                }}
-                onClick={handleRetry}
-                className="w-full px-6 py-4 bg-[#e8441a] text-white font-bold text-lg
-                         border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
-                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
-              >
-                <RotateCcw className="w-5 h-5" />
-                Galti ho gayi, asli resume upload karunga 😭
-              </motion.button>
-            </div>
-          </motion.div>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
       <Navbar />
 
       {isLoading && <LoadingRoast />}
+
+      {/* Invalid Document Modal */}
+      <InvalidDocModal
+        isOpen={!!invalidDocError}
+        onClose={handleRetry}
+        message={invalidDocError?.message || ""}
+      />
 
       <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -358,7 +401,6 @@ export default function Home() {
               onFileSelect={handleFileSelect}
               selectedFile={selectedFile}
               onClearFile={handleClearFile}
-              isScanError={isScanError}
             />
 
             {/* Error Message */}
@@ -367,35 +409,9 @@ export default function Home() {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 p-4 bg-[#ef4444] text-white font-bold border-3 border-[#1a1a1a]"
-                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+                style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
               >
                 {error}
-              </motion.div>
-            )}
-
-            {/* Scan Error Card */}
-            {isScanError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-4 p-6 bg-yellow-50 border-4 border-yellow-600"
-                style={{ boxShadow: '4px 4px 0px #eab308' }}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="text-3xl">📄</div>
-                  <div>
-                    <h3 className="font-bold text-yellow-800 mb-2">
-                      Image-Based PDF Detected
-                    </h3>
-                    <p className="text-yellow-900 mb-3">
-                      This PDF appears to be image-based or scanned. We can only analyze text-based PDFs.
-                    </p>
-                    <p className="text-sm text-yellow-700">
-                      💡 <strong>Tip:</strong> Export your resume as a text-based PDF from Word, Google Docs, or similar.
-                      Scanned/image PDFs are not supported.
-                    </p>
-                  </div>
-                </div>
               </motion.div>
             )}
 
@@ -406,19 +422,19 @@ export default function Home() {
                 whileHover={{
                   x: 2,
                   y: 2,
-                  boxShadow: '2px 2px 0px #1a1a1a'
+                  boxShadow: "2px 2px 0px #1a1a1a",
                 }}
                 whileTap={{
                   x: 4,
                   y: 4,
-                  boxShadow: '0px 0px 0px #1a1a1a'
+                  boxShadow: "0px 0px 0px #1a1a1a",
                 }}
                 onClick={handleAnalyze}
                 disabled={isLoading || !selectedFile}
                 className="px-8 py-4 bg-[#e8441a] text-white font-bold text-lg
                          border-4 border-[#1a1a1a] flex items-center justify-center gap-2
                          disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+                style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
               >
                 {isLoading ? (
                   <>
@@ -446,17 +462,17 @@ export default function Home() {
                 whileHover={{
                   x: 2,
                   y: 2,
-                  boxShadow: '2px 2px 0px #1a1a1a'
+                  boxShadow: "2px 2px 0px #1a1a1a",
                 }}
                 whileTap={{
                   x: 4,
                   y: 4,
-                  boxShadow: '0px 0px 0px #1a1a1a'
+                  boxShadow: "0px 0px 0px #1a1a1a",
                 }}
                 onClick={handleDemo}
                 className="px-8 py-4 bg-white text-[#1a1a1a] font-bold text-lg
                          border-4 border-[#1a1a1a] flex items-center justify-center gap-2"
-                style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+                style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
               >
                 <Sparkles className="w-5 h-5" />
                 Try Demo
@@ -464,24 +480,36 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Marquee Strip */}
+          {/* Marquee Strip - Fixed: removed redundant motion.div wrapper */}
           <div className="mt-20 overflow-hidden relative border-y-2 border-[#1a1a1a] py-4 bg-white group">
-            <div className="relative flex overflow-hidden">
-              <motion.div
-                className="flex whitespace-nowrap animate-marquee group-hover:[animation-play-state:paused]"
-                style={{ fontFamily: 'var(--font-space-mono), monospace' }}
-              >
-                {Array(2).fill(null).map((_, setIndex) => (
+            <div
+              className="flex whitespace-nowrap animate-marquee group-hover:[animation-play-state:paused]"
+              style={{ fontFamily: "var(--font-space-mono), monospace" }}
+            >
+              {Array(2)
+                .fill(null)
+                .map((_, setIndex) => (
                   <div key={setIndex} className="flex items-center">
-                    {["ANALYZE", "SCORE", "IMPROVE", "ROAST", "ANALYZE", "SCORE", "IMPROVE", "ROAST"].map((text, i) => (
-                      <span key={i} className="text-[#e8441a] text-lg sm:text-xl md:text-2xl font-mono mx-4 sm:mx-6 font-bold">
+                    {[
+                      "ANALYZE",
+                      "SCORE",
+                      "IMPROVE",
+                      "ROAST",
+                      "ANALYZE",
+                      "SCORE",
+                      "IMPROVE",
+                      "ROAST",
+                    ].map((text, i) => (
+                      <span
+                        key={i}
+                        className="text-[#e8441a] text-lg sm:text-xl md:text-2xl font-mono mx-4 sm:mx-6 font-bold"
+                      >
                         {text}
                         <span className="text-[#1a1a1a] mx-4 sm:mx-6">•</span>
                       </span>
                     ))}
                   </div>
                 ))}
-              </motion.div>
             </div>
           </div>
 
@@ -497,9 +525,13 @@ export default function Home() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-[#1a1a1a] font-bold font-mono text-sm border-3 border-[#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px] transition-all duration-100"
-              style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
-              onMouseEnter={(e) => { e.currentTarget.style.boxShadow = '2px 2px 0px #1a1a1a'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.boxShadow = '4px 4px 0px #1a1a1a'; }}
+              style={{ boxShadow: "4px 4px 0px #1a1a1a" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = "2px 2px 0px #1a1a1a";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = "4px 4px 0px #1a1a1a";
+              }}
             >
               Built by CHIRON 🔥
             </a>

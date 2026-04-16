@@ -102,7 +102,8 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.3 + i * 0.05 }}
-                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 font-bold border-2 border-green-600 hover:translate-y-[-1px] transition-transform duration-100"
+                className="px-3 py-1.5 text-sm bg-green-100 text-green-700 font-bold border-2 border-green-600
+                  hover:translate-y-[-2px] hover:translate-x-[-1px] transition-all duration-100"
               >
                 {keyword}
               </motion.span>
@@ -138,7 +139,8 @@ export default function ATSChecker({ data }: ATSCheckerProps) {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.5 + i * 0.05 }}
-                className="px-3 py-1.5 text-sm bg-white text-[#1a1a1a] font-bold border-2 border-[#1a1a1a] hover:translate-y-[-1px] transition-transform duration-100"
+                className="px-3 py-1.5 text-sm bg-white text-[#1a1a1a] font-bold border-2 border-[#1a1a1a]
+                  hover:translate-y-[-2px] hover:translate-x-[-1px] transition-all duration-100"
                 style={{ boxShadow: '2px 2px 0px #1a1a1a' }}
               >
                 {keyword}
