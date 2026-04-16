@@ -15,11 +15,9 @@ const messages = [
 
 const emojis = ["🤡", "💀"];
 
-// Get a random index based on current hour so it changes periodically but not too frequently
+// Get truly random index using Math.random()
 function getRandomIndex(length: number): number {
-  const hour = new Date().getHours();
-  const day = new Date().getDate();
-  return (hour + day) % length;
+  return Math.floor(Math.random() * length);
 }
 
 export default function SecretPageClient() {
@@ -28,7 +26,7 @@ export default function SecretPageClient() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    // Only set random message on client-side mount
+    // Set truly random message on client-side mount
     setCurrentIndex(getRandomIndex(messages.length));
     setCurrentEmoji(emojis[getRandomIndex(emojis.length)]);
     setMounted(true);
@@ -82,14 +80,14 @@ export default function SecretPageClient() {
 
           {/* Content */}
           <div className="p-8 text-center">
-            {/* Static Emoji */}
+            {/* Random Emoji */}
             <div
               className="text-8xl mb-6"
             >
               {currentEmoji}
             </div>
 
-            {/* Static Message */}
+            {/* Random Message */}
             <div className="mb-8">
               <p className="text-xl text-[#1a1a1a] font-bold">
                 {messages[currentIndex]}

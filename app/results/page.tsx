@@ -76,10 +76,11 @@ export default function ResultsPage() {
         const parsed = JSON.parse(stored);
         setAnalysis(parsed);
       } catch (e) {
-        console.error("Failed to parse analysis:", e);
+        console.error("Failed to parse analysis from sessionStorage:", e);
         router.push("/");
       }
     } else {
+      console.error("No analysis found in sessionStorage, redirecting to home");
       router.push("/");
     }
     setIsLoading(false);

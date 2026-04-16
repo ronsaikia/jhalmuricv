@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, AlertCircle, Lightbulb, ArrowRight } from "lucide-react";
 import { CategoryScore, CategoryKey } from "@/lib/types";
@@ -12,7 +12,7 @@ interface CategoryCardProps {
   index: number;
 }
 
-export default function CategoryCard({
+function CategoryCard({
   categoryKey,
   data,
   index,
@@ -23,9 +23,10 @@ export default function CategoryCard({
   const percentage = (data.score / data.maxScore) * 100;
   const label = categoryLabels[categoryKey];
 
-  // Handle click with stopPropagation to prevent event bubbling
+  // Handle click with stopPropagation and preventDefault to prevent event bubbling
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setIsExpanded(!isExpanded);
   };
 
@@ -98,10 +99,11 @@ export default function CategoryCard({
       {/* Feedback */}
       <p className="text-sm text-[#1a1a1a] font-medium">{data.feedback}</p>
 
-      {/* Expanded Content */}
-      <AnimatePresence>
+      {/* Expanded Content - Use categoryKey as unique key for AnimatePresence */}
+      <AnimatePresence key={`${categoryKey}-presence`}>
         {isExpanded && (
           <motion.div
+            key={`${categoryKey}-expanded`}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -161,3 +163,6 @@ export default function CategoryCard({
     </motion.div>
   );
 }
+
+// Wrap in React.memo to prevent unnecessary re-renders
+export default React.memo(CategoryCard);

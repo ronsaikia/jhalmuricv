@@ -3,18 +3,20 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, File, Check, AlertCircle, X } from "lucide-react";
+import { Upload, File, Check, AlertCircle, X, Info } from "lucide-react";
 
 interface UploadZoneProps {
   onFileSelect: (file: File) => void;
   selectedFile: File | null;
   onClearFile: () => void;
+  isScanError?: boolean;
 }
 
 export default function UploadZone({
   onFileSelect,
   selectedFile,
   onClearFile,
+  isScanError = false,
 }: UploadZoneProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -180,6 +182,27 @@ export default function UploadZone({
         </div>
       </div>
 
+      {/* Scan Error Message */}
+      <AnimatePresence>
+        {isScanError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mt-4 flex items-start gap-2 text-yellow-800 text-sm font-bold bg-yellow-50 border-3 border-yellow-600 p-3"
+            style={{ boxShadow: '3px 3px 0px #eab308' }}
+          >
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <p>This PDF appears to be image-based or scanned. Please use a text-based PDF resume.</p>
+              <p className="text-xs text-yellow-700 mt-1 font-normal">
+                💡 Tip: Export your resume as a text-based PDF from Word, Google Docs, or similar.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Error Messages */}
       <AnimatePresence>
         {hasError && (
@@ -199,6 +222,14 @@ export default function UploadZone({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Info Note */}
+      <div className="mt-4 flex items-start gap-2 text-[#6b6b6b] text-xs">
+        <Info className="w-4 h-4 flex-shrink-0" />
+        <span>
+          <strong>Note:</strong> Scanned/image PDFs are not supported. Export your resume as a text-based PDF from Word, Google Docs, or similar.
+        </span>
+      </div>
     </div>
   );
 }

@@ -13,16 +13,39 @@ if (!process.env.GEMINI_API_KEY) {
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Parse PDF using pdfjs-dist
+// Sleep helper for retry logic
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Parse PDF with multiple fallback strategies
 async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
+  const errors: string[] = [];
+
+  // Strategy 1: Try pdf-parse package (most reliable when it works)
   try {
-    // Use legacy build for Node.js compatibility
+    console.log("[PDF Parse] Attempting pdf-parse strategy...");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pdfParse = require("pdf-parse");
+    const result = await pdfParse(buffer);
+    if (result.text && result.text.trim().length > 0) {
+      console.log("[PDF Parse] pdf-parse succeeded, extracted", result.text.length, "chars");
+      return { text: result.text };
+    }
+    throw new Error("pdf-parse returned empty text");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[PDF Parse] pdf-parse failed:", msg);
+    errors.push(`pdf-parse: ${msg}`);
+  }
+
+  // Strategy 2: Try pdfjs-dist legacy build
+  try {
+    console.log("[PDF Parse] Attempting pdfjs-dist legacy build...");
     const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
 
-    // Convert Buffer to Uint8Array
-    const uint8Array = new Uint8Array(buffer);
+    // Disable worker in Node.js
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
 
-    // Load the PDF document
+    const uint8Array = new Uint8Array(buffer);
     const loadingTask = pdfjs.getDocument({
       data: uint8Array,
       useWorkerFetch: false,
@@ -31,24 +54,93 @@ async function parsePDF(buffer: Buffer): Promise<{ text: string }> {
     });
 
     const pdfDocument = await loadingTask.promise;
-
-    // Extract text from all pages
     let fullText = "";
-    const numPages = pdfDocument.numPages;
 
-    for (let i = 1; i <= numPages; i++) {
+    for (let i = 1; i <= pdfDocument.numPages; i++) {
       const page = await pdfDocument.getPage(i);
       const textContent = await page.getTextContent();
       const pageText = textContent.items
         .map((item) => (item as { str: string }).str)
+        .filter((str) => str && str.length > 0)
         .join(" ");
       fullText += pageText + "\n";
     }
 
-    return { text: fullText };
+    if (fullText.trim().length > 0) {
+      console.log("[PDF Parse] pdfjs-dist legacy succeeded, extracted", fullText.length, "chars");
+      return { text: fullText };
+    }
+    throw new Error("pdfjs-dist legacy returned empty text");
   } catch (error) {
-    console.error("PDF parsing error:", error);
-    throw new Error("Failed to parse PDF: " + (error as Error).message);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[PDF Parse] pdfjs-dist legacy failed:", msg);
+    errors.push(`pdfjs-dist legacy: ${msg}`);
+  }
+
+  // Strategy 3: Try pdfjs-dist standard build
+  try {
+    console.log("[PDF Parse] Attempting pdfjs-dist standard build...");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const pdfjs: typeof import("pdfjs-dist") = await import("pdfjs-dist/build/pdf.mjs" as string);
+
+    // Disable worker in Node.js
+    pdfjs.GlobalWorkerOptions.workerSrc = "";
+
+    const uint8Array = new Uint8Array(buffer);
+    const loadingTask = pdfjs.getDocument({
+      data: uint8Array,
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true,
+    });
+
+    const pdfDocument = await loadingTask.promise;
+    let fullText = "";
+
+    for (let i = 1; i <= pdfDocument.numPages; i++) {
+      const page = await pdfDocument.getPage(i);
+      const textContent = await page.getTextContent();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pageText = textContent.items
+        .map((item: any) => item.str as string)
+        .filter((str: string) => str && str.length > 0)
+        .join(" ");
+      fullText += pageText + "\n";
+    }
+
+    if (fullText.trim().length > 0) {
+      console.log("[PDF Parse] pdfjs-dist standard succeeded, extracted", fullText.length, "chars");
+      return { text: fullText };
+    }
+    throw new Error("pdfjs-dist standard returned empty text");
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("[PDF Parse] pdfjs-dist standard failed:", msg);
+    errors.push(`pdfjs-dist standard: ${msg}`);
+  }
+
+  // All strategies failed
+  console.error("[PDF Parse] All strategies failed:", errors);
+  throw new Error(`Could not read PDF. Make sure it's not image-only or corrupted.`);
+}
+
+// Retry wrapper for Gemini API call
+async function callGeminiWithRetry(
+  prompt: string,
+  retries = 1
+): Promise<ReturnType<ReturnType<GoogleGenerativeAI["getGenerativeModel"]>["generateContent"]>> {
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+  try {
+    return await model.generateContent(prompt);
+  } catch (error) {
+    console.error("[Gemini] Initial call failed:", error);
+    if (retries > 0) {
+      console.log(`[Gemini] Retrying after 1000ms... (${retries} retries left)`);
+      await sleep(1000);
+      return callGeminiWithRetry(prompt, retries - 1);
+    }
+    throw error;
   }
 }
 
@@ -102,15 +194,16 @@ const invalidDocumentMessages = [
 ];
 
 export async function POST(request: NextRequest) {
-  // Check API key early
-  if (!process.env.GEMINI_API_KEY) {
-    return NextResponse.json(
-      { error: "Server configuration error: API key not configured" },
-      { status: 500 }
-    );
-  }
-
+  // Wrap entire handler in try/catch for robustness
   try {
+    // Check API key early
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: "Server configuration error: API key not configured" },
+        { status: 500 }
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("resume") as File | null;
 
@@ -180,10 +273,9 @@ export async function POST(request: NextRequest) {
     // Truncate very long resumes to avoid token limits
     const truncatedText = pdfText.slice(0, 15000);
 
-    // Call Gemini API
+    // Call Gemini API with retry
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const result = await model.generateContent(
+      const result = await callGeminiWithRetry(
         SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
       );
       const analysisText = result.response.text().trim();
@@ -237,14 +329,14 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(analysis);
     } catch (apiError) {
-      console.error("Gemini API error:", apiError);
+      console.error("Gemini API error (after retries):", apiError);
       return NextResponse.json(
         { error: "Analysis failed. Please try again later." },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("Unexpected error in POST handler:", error);
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 }

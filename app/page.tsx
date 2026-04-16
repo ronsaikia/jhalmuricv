@@ -24,7 +24,7 @@ const invalidDocumentMessages = [
   "System confused: Is this a resume or a grocery list? Go back and upload a real CV.",
 ];
 
-// Demo data for demo mode
+// Demo data for demo mode - defined outside component to avoid re-creation
 const demoAnalysis: ResumeAnalysis = {
   overallScore: 73,
   roastHeadline:
@@ -176,23 +176,27 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [invalidDocError, setInvalidDocError] = useState<InvalidDocumentError | null>(null);
+  const [isScanError, setIsScanError] = useState(false);
 
   const handleFileSelect = (file: File) => {
     setSelectedFile(file);
     setError(null);
     setInvalidDocError(null);
+    setIsScanError(false);
   };
 
   const handleClearFile = () => {
     setSelectedFile(null);
     setError(null);
     setInvalidDocError(null);
+    setIsScanError(false);
   };
 
   const handleRetry = () => {
     setSelectedFile(null);
     setError(null);
     setInvalidDocError(null);
+    setIsScanError(false);
   };
 
   const handleAnalyze = async () => {
@@ -204,15 +208,23 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setInvalidDocError(null);
+    setIsScanError(false);
 
     try {
       const formData = new FormData();
       formData.append("resume", selectedFile);
 
+      // Add AbortController with 30-second timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       const data = await response.json();
 
@@ -230,8 +242,19 @@ export default function Home() {
         return;
       }
 
+      // Check for scan/image-based PDF error
       if (!response.ok) {
-        throw new Error(data.error || "Failed to analyze resume");
+        const errorMsg = data.error || "";
+        if (
+          errorMsg.includes("Could not read PDF") ||
+          errorMsg.includes("image-based") ||
+          errorMsg.includes("scanned")
+        ) {
+          setIsScanError(true);
+          setIsLoading(false);
+          return;
+        }
+        throw new Error(errorMsg || "Failed to analyze resume");
       }
 
       // Store analysis in sessionStorage
@@ -335,6 +358,7 @@ export default function Home() {
               onFileSelect={handleFileSelect}
               selectedFile={selectedFile}
               onClearFile={handleClearFile}
+              isScanError={isScanError}
             />
 
             {/* Error Message */}
@@ -346,6 +370,32 @@ export default function Home() {
                 style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
               >
                 {error}
+              </motion.div>
+            )}
+
+            {/* Scan Error Card */}
+            {isScanError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 p-6 bg-yellow-50 border-4 border-yellow-600"
+                style={{ boxShadow: '4px 4px 0px #eab308' }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="text-3xl">📄</div>
+                  <div>
+                    <h3 className="font-bold text-yellow-800 mb-2">
+                      Image-Based PDF Detected
+                    </h3>
+                    <p className="text-yellow-900 mb-3">
+                      This PDF appears to be image-based or scanned. We can only analyze text-based PDFs.
+                    </p>
+                    <p className="text-sm text-yellow-700">
+                      💡 <strong>Tip:</strong> Export your resume as a text-based PDF from Word, Google Docs, or similar.
+                      Scanned/image PDFs are not supported.
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             )}
 

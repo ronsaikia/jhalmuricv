@@ -22,7 +22,6 @@ export default function ScoreGauge({
 
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
-  const progress = (displayScore / 100) * circumference;
 
   // Color based on score
   const getColor = (s: number): string => {
@@ -54,8 +53,9 @@ export default function ScoreGauge({
     return () => clearInterval(timer);
   }, [score]);
 
-  // Calculate stroke dash offset - handle edge case for 100%
-  const strokeDashoffset = score >= 100 ? 0 : circumference - progress;
+  // Calculate stroke dash offset based on actual score (not displayScore) to avoid visual glitch
+  const scoreProgress = (score / 100) * circumference;
+  const strokeDashoffset = score >= 100 ? 0 : circumference - scoreProgress;
 
   return (
     <div className="relative flex flex-col items-center">
