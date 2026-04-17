@@ -28,6 +28,39 @@ const hindiButtonTexts = [
 // Emojis for the modal
 const modalEmojis = ["🤡", "💀"];
 
+// Demo roast headlines (15 options from analyzePrompt.ts)
+const demoRoastHeadlines = [
+  "Bhai, tera resume dekh ke HR ne chai pi li aur ghost kar diya.",
+  "TCS NextStep pe bhi shortlist nahi hoga tera with this CV.",
+  "Tera CGPA aur tera impact metrics dono hi 6.5 ke neeche hain.",
+  "This resume has more buzzwords than a startup pitch at a tier-3 college fest.",
+  "Beta, 'team player' likhna band kar - sabko pata hai tu akela baitha tha dorm room mein.",
+  "Your projects section reads like a copy-paste from GeeksForGeeks tutorials.",
+  "IIT ka sapna dekh rahe ho? Yeh resume toh local coaching center bhi reject kar dega.",
+  "Tera 'proficient in C++ since class 6' - bhai, Turbo C++ chalana seekha hai bas.",
+  "Resume dekh ke lagta hai tujhe coding nahi, coding ne trauma diya hai.",
+  "FAANG wale tumhe nahi, tumhare resume ko therapy dilayenge.",
+  "Is resume se achha toh tera LinkedIn bio hai - aur woh bhi cringe hai.",
+  "Naukri.com pe mass apply karte ho na? Isi liye response nahi aata.",
+  "Tera resume aur tera attendance dono hi 75% se zyada fake lagte hain.",
+  "Bhai, 'worked at startup of 2 people' ko 'Founding Engineer' mat likh.",
+  "Hackathon winner? Bhai, college fest mein participation certificate mat dikha.",
+];
+
+// Demo roast quotes (10 options from analyzePrompt.ts)
+const demoRoastQuotes = [
+  "Look, I've seen grocery lists with more compelling narratives than this. You have the ingredients for a great resume, but you're serving them raw. Tera 'proficient in everything' actually means 'master of nothing' - aur yeh sabko dikhta hai except tereko.",
+  "Bhai, tu Tier-3 college se hai toh portfolio Tier-1 hona chahiye. Yeh copy-paste job description wala experience kisi ko impress nahi karega. 'Learned a lot' mat likh - kya seekha, kitna seekha, dikha numbers mein.",
+  "Tera CGPA 6.5 hai aur resume mein 'hardworking' likha hai? Bhai, yeh oxymoron lag raha hai. Aur yeh 'leadership skills' - class representative banne se leadership nahi aati, projects dikha jisme tu actually lead kiya ho.",
+  "This resume screams 'mass hiring candidate' - and not in a good way. TCS/Infosys bhi sochte honge ki isse achha koi aur fresher mil jayega. 'Team player' ke alawa kuchh aur bhi likh de, sab yahi likhte hain.",
+  "Ammi-Papa ke sapno ko justify karne ke liye thodi mehnat karta? FAANG wale tere is generic experience se bore ho gaye hain pehle se hi. Kuchh unique kiya hai life mein? Dikha na resume pe!",
+  "Yeh resume dekh ke HR sochti hai ki 'kitna package maangega ye?' - aur phir sochti hai 'rejected, bach gaya paise se.' Tere skills section mein MS Office aur HTML dono hai - bhai decide kar, developer hai ya data entry operator?",
+  "Tera LinkedIn hustle culture wala bio aur yeh resume match nahi kar raha. LinkedIn pe 'passionate SDE' aur resume pe 3 projects with zero deployed links? At least screenshots toh daal de bhai.",
+  "Campus placement mein shortlist nahi hua toh off-campus apply kar raha hai? Strategy same hai, result bhi same hoga. Yeh 'quick learner' wala tagline hata - 4 saal mein itna nahi seekha ki resume theek ban sake.",
+  "Beta, tu '3 years experience as fresher' wala meme ban raha hai. Internship ko 'Software Engineer' mat likh, recruiters pakad lete hain jhoot. Aur agar sach mein 3 saal kaam kiya hai, toh achievements kahan hain?",
+  "Resume mein ' IIT preparation' likh ke kya prove karna chahta hai? Ki tu drop year mein bhi select nahi hua? Abhi bhi time hai - skills build kar, projects bana, yeh past ki dukh bhari kahani mat suna.",
+];
+
 // Demo data for demo mode - defined outside component to avoid re-creation
 const demoAnalysis: ResumeAnalysis = {
   overallScore: 73,
@@ -364,21 +397,22 @@ export default function Home() {
         });
       }
 
+      setIsLoading(false);
       router.push("/results");
     } catch (err) {
-      // Show user-friendly error messages
+      // Show user-friendly error messages (Hindi/Hinglish)
       let userMessage = "Something went wrong. Please try again.";
 
       if (err instanceof Error) {
         const msg = err.message.toLowerCase();
 
-        // Handle specific error types with friendly messages
+        // Handle specific error types with friendly Hinglish messages
         if (msg.includes("503") || msg.includes("429") || msg.includes("overloaded") || msg.includes("rate limit")) {
-          userMessage = "Our servers are a bit busy right now. Please wait a moment and try again.";
+          userMessage = "Yaar API ke tokens khatam ho gaye 😭 Demo try karo — warna thodi der baad dubara try karo!";
         } else if (msg.includes("timeout") || msg.includes("abort") || msg.includes("signal")) {
-          userMessage = "The analysis is taking longer than expected. Please try again or use a smaller PDF.";
+          userMessage = "Bhai itna bada PDF? Server so gaya. Chota PDF upload kar ya Demo try kar.";
         } else if (msg.includes("network") || msg.includes("fetch") || msg.includes("failed")) {
-          userMessage = "Connection issue detected. Please check your internet and try again.";
+          userMessage = "Internet slow hai ya server gone for chai break ☕ Dubara try kar.";
         } else if (msg.includes("json") || msg.includes("parse")) {
           userMessage = "We had trouble reading the response. Please try again.";
         }
@@ -395,7 +429,56 @@ export default function Home() {
   };
 
   const handleDemo = () => {
-    sessionStorage.setItem("resumeAnalysis", JSON.stringify(demoAnalysis));
+    // Randomize overallScore between 45 and 82
+    const randomOverallScore = Math.floor(Math.random() * (82 - 45 + 1)) + 45;
+
+    // Calculate scaling factor based on original score of 73
+    const scaleFactor = randomOverallScore / 73;
+
+    // Scale category scores proportionally while keeping within bounds
+    const scaleScore = (originalScore: number, maxScore: number) => {
+      const scaled = Math.round(originalScore * scaleFactor);
+      return Math.min(scaled, maxScore);
+    };
+
+    const randomizedDemo = {
+      ...demoAnalysis,
+      overallScore: randomOverallScore,
+      roastHeadline: demoRoastHeadlines[Math.floor(Math.random() * demoRoastHeadlines.length)],
+      roastQuote: demoRoastQuotes[Math.floor(Math.random() * demoRoastQuotes.length)],
+      categories: {
+        structureCompleteness: {
+          ...demoAnalysis.categories.structureCompleteness,
+          score: scaleScore(demoAnalysis.categories.structureCompleteness.score, 20),
+        },
+        contentQuality: {
+          ...demoAnalysis.categories.contentQuality,
+          score: scaleScore(demoAnalysis.categories.contentQuality.score, 20),
+        },
+        impactMetrics: {
+          ...demoAnalysis.categories.impactMetrics,
+          score: scaleScore(demoAnalysis.categories.impactMetrics.score, 15),
+        },
+        languageWriting: {
+          ...demoAnalysis.categories.languageWriting,
+          score: scaleScore(demoAnalysis.categories.languageWriting.score, 10),
+        },
+        formattingReadability: {
+          ...demoAnalysis.categories.formattingReadability,
+          score: scaleScore(demoAnalysis.categories.formattingReadability.score, 15),
+        },
+        atsCompatibility: {
+          ...demoAnalysis.categories.atsCompatibility,
+          score: scaleScore(demoAnalysis.categories.atsCompatibility.score, 10),
+        },
+        skillsRelevance: {
+          ...demoAnalysis.categories.skillsRelevance,
+          score: scaleScore(demoAnalysis.categories.skillsRelevance.score, 10),
+        },
+      },
+    };
+
+    sessionStorage.setItem("resumeAnalysis", JSON.stringify(randomizedDemo));
     router.push("/results");
   };
 

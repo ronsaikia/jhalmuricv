@@ -489,7 +489,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         {
-          error: "Our servers are a bit busy right now. Please wait a moment and try again.",
+          error: "Gemini API busy hai abhi 😤 Thoda wait karo aur retry karo, ya Demo mode try karo.",
           retryAfter: 5
         },
         { status: 503 }

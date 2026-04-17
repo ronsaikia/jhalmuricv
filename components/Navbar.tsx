@@ -1,17 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
 
 export default function Navbar() {
-  const router = useRouter();
-
-  const handleSecretClick = () => {
-    // Add unique query param to force fresh render
-    router.push("/secret?v=" + Date.now());
-  };
-
   return (
     <>
       {/* Orange-red solid line at top */}
@@ -32,23 +25,28 @@ export default function Navbar() {
               className="flex items-center gap-2"
               whileHover={{ scale: 1.02 }}
             >
-              <Image 
-                src="/favicon.svg"
-                alt="JhalmuriCV Flame"
-                width={32}
-                height={32}
-                className="inline-block"
-              />
-              <span className="font-mono font-black text-2xl text-[#1a1a1a] tracking-tight">
-                JhalmuriCV
-              </span>
+              <Link href="/" className="flex items-center gap-2">
+                <Image
+                  src="/favicon.svg"
+                  alt="JhalmuriCV Flame"
+                  width={32}
+                  height={32}
+                  className="inline-block"
+                />
+                <span
+                  className="font-syne font-black text-3xl text-[#1a1a1a] tracking-tight"
+                  style={{ fontFamily: 'var(--font-syne)' }}
+                >
+                  JhalmuriCV
+                </span>
+              </Link>
             </motion.div>
 
             {/* RIGHT: Warning badge + Made in India */}
             <div className="flex items-center gap-4">
-              {/* Warning Badge - Button with router.push - NEOBRUTALIST STYLE */}
+              {/* Warning Badge - Link to secret page - NEOBRUTALIST STYLE */}
+              <Link href="/secret">
               <motion.button
-                onClick={handleSecretClick}
                 title="Click to discover who's watching 👀"
                 className="flex items-center gap-2 px-4 py-2 bg-[#ef4444] text-white
                          border-3 border-[#1a1a1a] font-bold font-mono text-xs
@@ -77,6 +75,7 @@ export default function Navbar() {
                   NEAR YOU 👀
                 </span>
               </motion.button>
+              </Link>
 
             </div>
           </div>

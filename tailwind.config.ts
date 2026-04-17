@@ -42,6 +42,7 @@ const config: Config = {
       fontFamily: {
         mono: ["var(--font-space-mono)", "monospace"],
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        syne: ["var(--font-syne)", "sans-serif"],
       },
       borderWidth: {
         '3': '3px',

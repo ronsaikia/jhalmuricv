@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Mono } from "next/font/google";
+import { Inter, Space_Mono, Syne } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,6 +12,13 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
   subsets: ["latin"],
   variable: "--font-space-mono",
+  display: "swap",
+});
+
+const syne = Syne({
+  weight: ["700", "800"],
+  subsets: ["latin"],
+  variable: "--font-syne",
   display: "swap",
 });
 
@@ -39,11 +46,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/favicon.ico" },
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/favicon.ico",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
 };
 
@@ -55,7 +61,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" style={{ overflowX: "hidden", height: "auto" }}>
       <body
-        className={`${inter.variable} ${spaceMono.variable} antialiased min-h-screen`}
+        className={`${inter.variable} ${spaceMono.variable} ${syne.variable} antialiased min-h-screen`}
         style={{ overflowX: "hidden", height: "auto" }}
       >
         {children}

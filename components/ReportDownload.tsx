@@ -123,7 +123,7 @@ export default function ReportDownload({ analysis }: ReportDownloadProps) {
       {/* Hidden report container for PDF generation - light theme */}
       <div
         ref={reportRef}
-        className="fixed -left-[9999px] top-0 w-[800px] p-8 bg-[#f0ede8]"
+        className="w-[800px] p-8 bg-[#f0ede8]"
         style={{ position: "absolute", left: "-9999px" }}
       >
         <div className="text-center mb-8">
