@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, File, Check, AlertCircle, X, Info } from "lucide-react";
+import { Upload, File, Check, AlertCircle, X } from "lucide-react";
 
 interface UploadZoneProps {
   onFileSelect: (file: File) => void;

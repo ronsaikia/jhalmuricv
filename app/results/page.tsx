@@ -67,6 +67,7 @@ export default function ResultsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [reactionSeed] = useState(() => Math.random());
 
   useEffect(() => {
     // Get analysis from sessionStorage
@@ -129,7 +130,7 @@ export default function ResultsPage() {
     analysis.categories
   ) as [CategoryKey, ResumeAnalysis["categories"][CategoryKey]][];
 
-  const scoreReaction = getScoreReaction(analysis.overallScore);
+  const scoreReaction = getScoreReaction(analysis.overallScore, reactionSeed);
 
   return (
     <div style={{ minHeight: '100vh', height: 'fit-content', overflow: 'hidden' }}>
@@ -225,7 +226,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   {'// SCORE_BREAKDOWN'}
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Score Breakdown</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold font-syne text-[#1a1a1a]">Score Breakdown</h2>
                 <p className="text-[#1a1a1a] mt-1 font-medium">Detailed analysis across 7 key dimensions</p>
               </motion.div>
 
@@ -252,7 +253,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   {'// SECTION_DETECTION'}
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Section Detection</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold font-syne text-[#1a1a1a]">Section Detection</h2>
                 <p className="text-[#1a1a1a] mt-1 font-medium">Which sections we found in your resume</p>
               </motion.div>
 
@@ -328,7 +329,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   {'// ATS_COMPATIBILITY'}
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">ATS Compatibility</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold font-syne text-[#1a1a1a]">ATS Compatibility</h2>
                 <p className="text-[#1a1a1a] mt-1 font-medium">How well your resume performs with Applicant Tracking Systems</p>
               </motion.div>
 
@@ -346,7 +347,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   {'// FEEDBACK'}
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">The Good vs The Ugly</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold font-syne text-[#1a1a1a]">The Good vs The Ugly</h2>
               </motion.div>
 
               <FeedbackSection
@@ -366,7 +367,7 @@ export default function ResultsPage() {
                 <p className="text-xs font-mono text-[#1a1a1a] uppercase tracking-widest mb-2 font-bold">
                   {'// ACTION_PLAN'}
                 </p>
-                <h2 className="text-3xl font-bold font-mono text-[#1a1a1a]">Your Action Plan</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold font-syne text-[#1a1a1a]">Your Action Plan</h2>
                 <p className="text-[#1a1a1a] mt-1 font-medium">Prioritized steps to improve your resume</p>
               </motion.div>
 

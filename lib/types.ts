@@ -109,38 +109,46 @@ export interface ScoreReaction {
   color: string;
 }
 
-export const getScoreReaction = (score: number): ScoreReaction => {
+export const getScoreReaction = (score: number, seed?: number): ScoreReaction => {
+  const rand = seed !== undefined ? seed : Math.random();
+
   if (score <= 30) {
-    return {
-      emoji: "💀",
-      text: "Beta, ghar ja.",
-      color: "text-red-500",
-    };
+    const options: ScoreReaction[] = [
+      { emoji: "💀", text: "Beta, ghar ja.", color: "#ef4444" },
+      { emoji: "🪦", text: "Resume ya death certificate?", color: "#ef4444" },
+      { emoji: "☠️", text: "HR ne screenshot liya roast ke liye.", color: "#ef4444" },
+    ];
+    return options[Math.floor(rand * options.length)];
   }
   if (score <= 50) {
-    return {
-      emoji: "😬",
-      text: "Bhai, improvement chahiye.",
-      color: "text-orange-500",
-    };
+    const options: ScoreReaction[] = [
+      { emoji: "😬", text: "Bhai, improvement chahiye.", color: "#f97316" },
+      { emoji: "😰", text: "TCS bhi sochegi do baar.", color: "#f97316" },
+      { emoji: "😵", text: "Itna toh expect nahi tha yaar.", color: "#f97316" },
+    ];
+    return options[Math.floor(rand * options.length)];
   }
   if (score <= 70) {
-    return {
-      emoji: "😐",
-      text: "Average. Typical tier-2 energy.",
-      color: "text-yellow-500",
-    };
+    const options: ScoreReaction[] = [
+      { emoji: "😐", text: "Average. Typical tier-2 energy.", color: "#eab308" },
+      { emoji: "🤔", text: "Chalega... par chalega nahi FAANG mein.", color: "#eab308" },
+      { emoji: "😑", text: "Mass hiring candidate vibes.", color: "#eab308" },
+      { emoji: "🙃", text: "Berozgari se 2 kadam door.", color: "#eab308" },
+    ];
+    return options[Math.floor(rand * options.length)];
   }
   if (score <= 85) {
-    return {
-      emoji: "👍",
-      text: "Not bad. Shayad shortlist ho.",
-      color: "text-green-500",
-    };
+    const options: ScoreReaction[] = [
+      { emoji: "👍", text: "Not bad. Shayad shortlist ho.", color: "#22c55e" },
+      { emoji: "💪", text: "Solid. Kuch hope hai tere mein.", color: "#22c55e" },
+      { emoji: "🙌", text: "HR ka call aa sakta hai.", color: "#22c55e" },
+    ];
+    return options[Math.floor(rand * options.length)];
   }
-  return {
-    emoji: "🔥",
-    text: "Ekdum mast! FAANG wale rote hain tere liye.",
-    color: "text-amber-400",
-  };
+  const options: ScoreReaction[] = [
+    { emoji: "🔥", text: "Ekdum mast! FAANG wale rote hain tere liye.", color: "#f59e0b" },
+    { emoji: "🚀", text: "Tera resume dekh ke HR ka dil jeet liya.", color: "#f59e0b" },
+    { emoji: "⭐", text: "Bhai tu toh placement cell ka hero hai.", color: "#f59e0b" },
+  ];
+  return options[Math.floor(rand * options.length)];
 };

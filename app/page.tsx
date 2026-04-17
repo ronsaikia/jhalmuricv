@@ -405,16 +405,22 @@ export default function Home() {
 
       if (err instanceof Error) {
         const msg = err.message.toLowerCase();
+        const originalMsg = err.message;
 
-        // Handle specific error types with friendly Hinglish messages
-        if (msg.includes("503") || msg.includes("429") || msg.includes("overloaded") || msg.includes("rate limit")) {
+        // If server already sent a Hindi/Hinglish message, use it directly
+        if (msg.includes("api busy hai") || msg.includes("demo mode try karo")) {
+          userMessage = originalMsg;
+        } else if (msg.includes("503") || msg.includes("429") || msg.includes("overloaded") || msg.includes("rate limit")) {
           userMessage = "Yaar API ke tokens khatam ho gaye 😭 Demo try karo — warna thodi der baad dubara try karo!";
         } else if (msg.includes("timeout") || msg.includes("abort") || msg.includes("signal")) {
-          userMessage = "Bhai itna bada PDF? Server so gaya. Chota PDF upload kar ya Demo try kar.";
+          userMessage = "Bhai itna bada PDF? Server so gaya. Chota PDF upload kar ya Demo try kar";
         } else if (msg.includes("network") || msg.includes("fetch") || msg.includes("failed")) {
-          userMessage = "Internet slow hai ya server gone for chai break ☕ Dubara try kar.";
+          userMessage = "Internet slow hai ya server gone for chai break ☕ Dubara try kar";
         } else if (msg.includes("json") || msg.includes("parse")) {
           userMessage = "We had trouble reading the response. Please try again.";
+        } else if (originalMsg && originalMsg !== "Failed to analyze resume") {
+          // Use server error message if available and not the generic fallback
+          userMessage = originalMsg;
         }
       }
 
@@ -428,7 +434,9 @@ export default function Home() {
     }
   };
 
-  const handleDemo = () => {
+  const handleDemo = async () => {
+    setIsLoading(true);
+
     // Randomize overallScore between 45 and 82
     const randomOverallScore = Math.floor(Math.random() * (82 - 45 + 1)) + 45;
 
@@ -478,7 +486,13 @@ export default function Home() {
       },
     };
 
+    // Store the analysis first
     sessionStorage.setItem("resumeAnalysis", JSON.stringify(randomizedDemo));
+
+    // Simulate loading delay to show loading messages (6 seconds)
+    await new Promise(resolve => setTimeout(resolve, 6000));
+
+    // Navigate without clearing loading state to avoid flash of homepage
     router.push("/results");
   };
 

@@ -25,16 +25,17 @@ export default function Navbar() {
               className="flex items-center gap-2"
               whileHover={{ scale: 1.02 }}
             >
-              <Link href="/" className="flex items-center gap-2">
-                <Image
-                  src="/favicon.svg"
-                  alt="JhalmuriCV Flame"
-                  width={32}
-                  height={32}
-                  className="inline-block"
-                />
+              <Link href="/" className="flex items-center gap-1.5 sm:gap-2">
+                <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 flex-shrink-0">
+                  <Image
+                    src="/favicon.svg"
+                    alt="JhalmuriCV Flame"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
                 <span
-                  className="font-syne font-black text-3xl text-[#1a1a1a] tracking-tight"
+                  className="font-syne font-bold text-[1.25rem] sm:text-[1.5rem] md:text-[2rem] text-[#1a1a1a] leading-none tracking-normal"
                   style={{ fontFamily: 'var(--font-syne)' }}
                 >
                   JhalmuriCV

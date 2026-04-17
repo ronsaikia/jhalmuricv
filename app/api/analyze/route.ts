@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, Part } from "@google/generative-ai";
 import { SYSTEM_PROMPT, ANALYSIS_PROMPT, VISION_ANALYSIS_PROMPT, SIMPLIFIED_JSON_PROMPT } from "@/lib/analyzePrompt";
 
+// Supports: GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3
+// Add multiple keys to .env.local for automatic rotation on 503 errors
+
 // PDF parsing requires Node.js runtime
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -92,54 +95,45 @@ function isOverloadedError(error: unknown): boolean {
   return false;
 }
 
-// Retry wrapper for Gemini API call with exponential backoff
+// Retry wrapper for Gemini API call with key rotation
 async function callGeminiWithRetry(
-  genAI: GoogleGenerativeAI,
+  apiKeys: string[],
   prompt: string,
   base64Data?: string,
-  maxRetries = 3
-): Promise<ReturnType<ReturnType<GoogleGenerativeAI["getGenerativeModel"]>["generateContent"]>> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-
-  const delays = [1000, 2000, 4000]; // Exponential backoff: 1s, 2s, 4s
+  maxRetries = 4
+) {
+  let keyIndex = 0;
+  const delays = [1000, 2000, 3000, 4000];
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const currentKey = apiKeys[keyIndex % apiKeys.length];
+    const genAI = new GoogleGenerativeAI(currentKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
     try {
       if (base64Data) {
-        // Vision mode: send PDF as inline data with text prompt
         const contentParts: Part[] = [
-          {
-            inlineData: {
-              mimeType: "application/pdf",
-              data: base64Data,
-            },
-          },
+          { inlineData: { mimeType: "application/pdf", data: base64Data } },
           { text: prompt },
         ];
-        return await model.generateContent({
-          contents: [{ role: "user", parts: contentParts }],
-        });
+        return await model.generateContent({ contents: [{ role: "user", parts: contentParts }] });
       } else {
-        // Text mode: send text prompt only
         return await model.generateContent(prompt);
       }
     } catch (error) {
-      console.error(`[Gemini] Attempt ${attempt + 1} failed:`, error);
+      console.error(`[Gemini] Key ${keyIndex % apiKeys.length + 1}, attempt ${attempt + 1} failed:`, error);
 
-      // Only retry on 503/overload errors
       if (attempt < maxRetries && isOverloadedError(error)) {
+        keyIndex++; // rotate to next key
         const delay = delays[attempt] || 4000;
-        console.log(`[Gemini] Retrying after ${delay}ms... (${maxRetries - attempt} retries left)`);
+        console.log(`[Gemini] Rotating to key ${keyIndex % apiKeys.length + 1}, retrying after ${delay}ms...`);
         await sleep(delay);
         continue;
       }
-
-      // Don't retry on other errors
       throw error;
     }
   }
-
-  throw new Error("Max retries exceeded");
+  throw new Error("All API keys exhausted after retries");
 }
 
 // Function to check if text looks like a resume
@@ -217,18 +211,19 @@ const invalidDocumentMessages = [
 export async function POST(request: NextRequest) {
   // Wrap entire handler in try/catch for robustness
   try {
-    // Check API key and initialize genAI lazily
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error("GEMINI_API_KEY is not set!");
+    // Collect all available API keys
+    const apiKeys = [
+      process.env.GEMINI_API_KEY,
+      process.env.GEMINI_API_KEY_2,
+      process.env.GEMINI_API_KEY_3,
+    ].filter(Boolean) as string[];
+
+    if (apiKeys.length === 0) {
       return NextResponse.json(
-        { error: "Server configuration error: API key not configured" },
+        { error: "Server configuration error: No API keys configured" },
         { status: 500 }
       );
     }
-
-    // Initialize genAI inside the handler for lazy loading
-    const genAI = new GoogleGenerativeAI(apiKey);
 
     const formData = await request.formData();
     const file = formData.get("resume") as File | null;
@@ -315,7 +310,7 @@ export async function POST(request: NextRequest) {
           console.log("[Gemini] Using vision mode with raw PDF, buffer size:", buffer.length);
 
           result = await callGeminiWithRetry(
-            genAI,
+            apiKeys,
             SYSTEM_PROMPT + "\n\n" + VISION_ANALYSIS_PROMPT,
             base64Data
           );
@@ -341,7 +336,7 @@ export async function POST(request: NextRequest) {
           // Call Gemini API with text prompt
           console.log("[Gemini] Using text mode with extracted PDF text");
           result = await callGeminiWithRetry(
-            genAI,
+            apiKeys,
             SYSTEM_PROMPT + "\n\n" + ANALYSIS_PROMPT(truncatedText)
           );
         }
@@ -398,7 +393,7 @@ export async function POST(request: NextRequest) {
           console.log("[Gemini] Vision mode JSON parse failed, attempting simplified retry...");
           try {
             const retryResult = await callGeminiWithRetry(
-              genAI,
+              apiKeys,
               SYSTEM_PROMPT + "\n\n" + VISION_ANALYSIS_PROMPT + "\n\n" + SIMPLIFIED_JSON_PROMPT,
               base64Data
             );
@@ -489,7 +484,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         {
-          error: "Gemini API busy hai abhi 😤 Thoda wait karo aur retry karo, ya Demo mode try karo.",
+          error: "API busy hai abhi 😤 Thoda wait karo aur retry karo, ya Demo mode try karo",
           retryAfter: 5
         },
         { status: 503 }
