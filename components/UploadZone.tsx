@@ -11,6 +11,7 @@ interface UploadZoneProps {
   onClearFile: () => void;
   targetRole?: string;
   onTargetRoleChange?: (role: string) => void;
+  isProcessing?: boolean;
 }
 
 const TARGET_ROLES = [
@@ -29,6 +30,7 @@ export default function UploadZone({
   onClearFile,
   targetRole = "General / Fresher",
   onTargetRoleChange,
+  isProcessing = false,
 }: UploadZoneProps) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -140,13 +142,45 @@ export default function UploadZone({
                     e.stopPropagation();
                     onClearFile();
                   }}
+                  disabled={isProcessing}
                   className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-red-600
-                           border-3 border-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+                           border-3 border-red-600 bg-red-50 hover:bg-red-100 transition-colors
+                           disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ boxShadow: '2px 2px 0px #ef4444' }}
                 >
                   <X className="w-4 h-4" />
                   Remove file
                 </motion.button>
+
+                {/* Processing Progress Indicator */}
+                {isProcessing && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 w-full"
+                  >
+                    <div className="flex items-center justify-center gap-3 mb-2">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-5 h-5 border-3 border-[#e8441a] border-t-transparent rounded-full"
+                      />
+                      <span className="text-sm font-bold text-[#e8441a]">Analyzing resume...</span>
+                    </div>
+                    <div className="h-2 bg-[#e8e4df] border-2 border-[#1a1a1a] overflow-hidden">
+                      <motion.div
+                        className="h-full bg-[#e8441a]"
+                        initial={{ width: "0%" }}
+                        animate={{ width: ["0%", "60%", "40%", "80%", "60%"] }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: "easeInOut",
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+                )}
               </motion.div>
             ) : (
               <motion.div

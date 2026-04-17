@@ -17,6 +17,8 @@ import ATSChecker from "@/components/ATSChecker";
 import FeedbackSection from "@/components/FeedbackSection";
 import ReportDownload from "@/components/ReportDownload";
 import { ResumeAnalysis, CategoryKey, sectionLabels, getScoreReaction } from "@/lib/types";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 // Toast notification component
 interface ToastProps {
@@ -76,6 +78,19 @@ export default function ResultsPage() {
       try {
         const parsed = JSON.parse(stored);
         setAnalysis(parsed);
+
+        // Trigger confetti for high scores (85+) - delayed to let page load first
+        if (parsed.overallScore >= 85) {
+          setTimeout(async () => {
+            const confetti = (await import("canvas-confetti")).default;
+            confetti({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.6 },
+              colors: ["#22c55e", "#e8441a", "#1a1a1a", "#eab308"],
+            });
+          }, 1000);
+        }
       } catch (e) {
         console.error("Failed to parse analysis from sessionStorage:", e);
         setIsLoading(false);
@@ -136,7 +151,32 @@ export default function ResultsPage() {
     <div style={{ minHeight: '100vh', height: 'fit-content', overflow: 'hidden' }}>
       <Navbar />
 
-      <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden">
+      {/* Back to Home Button - Fixed position in navbar area */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.5 }}
+        className="fixed top-[72px] left-4 z-40"
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-[#1a1a1a] font-bold text-sm
+                     border-4 border-[#1a1a1a] hover:translate-x-[2px] hover:translate-y-[2px]
+                     transition-all duration-100"
+          style={{ boxShadow: '4px 4px 0px #1a1a1a' }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.boxShadow = '2px 2px 0px #1a1a1a';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.boxShadow = '4px 4px 0px #1a1a1a';
+          }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to Home
+        </Link>
+      </motion.div>
+
+      <main className="min-h-screen bg-[#f0ede8] overflow-x-hidden pt-8">
         <div className="pt-24 pb-8 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto flex flex-col gap-16 overflow-hidden">
             {/* Section 1: Roast Header */}

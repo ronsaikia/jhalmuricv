@@ -380,11 +380,8 @@ export default function Home() {
     setInvalidDocError(null);
   };
 
-  const handleRetry = () => {
-    setSelectedFile(null);
-    setError(null);
-    setInvalidDocError(null);
-  };
+  // handleRetry does the same thing as handleClearFile - reuse it
+  const handleRetry = handleClearFile;
 
   const handleAnalyze = async () => {
     if (!selectedFile) {
@@ -545,8 +542,10 @@ export default function Home() {
     // Simulate loading delay to show loading messages (6 seconds)
     await new Promise(resolve => setTimeout(resolve, 6000));
 
-    // Navigate without clearing loading state to avoid flash of homepage
+    // Navigate WITHOUT clearing loading state - the navigation will unmount the component
+    // Calling setIsLoading(false) here causes a flash of the homepage before navigation
     router.push("/results");
+    // Note: isLoading remains true - the LoadingRoast component stays visible until navigation
   };
 
   return (
@@ -575,6 +574,7 @@ export default function Home() {
               onClearFile={handleClearFile}
               targetRole={targetRole}
               onTargetRoleChange={setTargetRole}
+              isProcessing={isLoading && !!selectedFile}
             />
 
             {/* Error Message with Retry Button */}

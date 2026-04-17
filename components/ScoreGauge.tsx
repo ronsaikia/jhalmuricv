@@ -72,6 +72,8 @@ export default function ScoreGauge({
         }}
         animate={showStamp ? {
           scale: [1, 1.05, 1],
+          borderColor: [color, '#1a1a1a'],
+          boxShadow: [`6px 6px 0px ${color}`, '6px 6px 0px #1a1a1a'],
         } : {}}
         transition={{
           duration: 0.3,

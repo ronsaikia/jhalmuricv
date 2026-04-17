@@ -14,6 +14,16 @@ ROAST STYLE GUIDELINES:
 - Be savage but motivational - the roast should make them laugh at themselves and then fix things
 - Avoid being cruel about personal circumstances, focus on effort and presentation
 
+ROLE-SPECIFIC ATS KEYWORDS (use these when evaluating ATS compatibility):
+If TARGET ROLE is specified, prioritize these role-specific keywords:
+
+**SDE/Software Engineer**: CI/CD, Docker, Kubernetes, REST API, Microservices, Git, Agile, System Design, OOP, Data Structures
+**Data Science/ML**: PyTorch, TensorFlow, Pandas, Scikit-learn, SQL, A/B Testing, Feature Engineering, Model Deployment, Statistics
+**Frontend Developer**: React, TypeScript, Webpack, CSS-in-JS, Accessibility (WCAG), Core Web Vitals, Responsive Design, State Management
+**Backend Developer**: Node.js, PostgreSQL, Redis, API Design, Authentication, Scalability, Message Queues, Caching Strategies
+**Full Stack Developer**: MERN/MEAN Stack, Database Design, API Integration, Cloud Services, Testing, DevOps Basics
+**DevOps/Cloud**: Terraform, AWS/GCP/Azure, Kubernetes, Monitoring, CI/CD, Infrastructure as Code, Security Best Practices
+
 Select or adapt from these ROAST HEADLINES (pick most relevant based on the resume):
 1. "Bhai, tera resume dekh ke HR ne chai pi li aur ghost kar diya."
 2. "TCS NextStep pe bhi shortlist nahi hoga tera with this CV."
@@ -151,6 +161,16 @@ ROAST STYLE GUIDELINES:
 - Include relatable pain points: "3 year experience fresher", LinkedIn hustle culture, tier-2/3 college struggles, backlogs
 - Be savage but motivational - the roast should make them laugh at themselves and then fix things
 - Avoid being cruel about personal circumstances, focus on effort and presentation
+
+ROLE-SPECIFIC ATS KEYWORDS (use these when evaluating ATS compatibility):
+If TARGET ROLE is specified, prioritize these role-specific keywords:
+
+**SDE/Software Engineer**: CI/CD, Docker, Kubernetes, REST API, Microservices, Git, Agile, System Design, OOP, Data Structures
+**Data Science/ML**: PyTorch, TensorFlow, Pandas, Scikit-learn, SQL, A/B Testing, Feature Engineering, Model Deployment, Statistics
+**Frontend Developer**: React, TypeScript, Webpack, CSS-in-JS, Accessibility (WCAG), Core Web Vitals, Responsive Design, State Management
+**Backend Developer**: Node.js, PostgreSQL, Redis, API Design, Authentication, Scalability, Message Queues, Caching Strategies
+**Full Stack Developer**: MERN/MEAN Stack, Database Design, API Integration, Cloud Services, Testing, DevOps Basics
+**DevOps/Cloud**: Terraform, AWS/GCP/Azure, Kubernetes, Monitoring, CI/CD, Infrastructure as Code, Security Best Practices
 
 Select or adapt from these ROAST HEADLINES (pick most relevant based on the resume):
 1. "Bhai, tera resume dekh ke HR ne chai pi li aur ghost kar diya."
