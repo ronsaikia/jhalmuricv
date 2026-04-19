@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <img src="public/favicon.svg" alt="JhalmuriCV Logo" width="100" />
 
-## Getting Started
+  
 
-First, run the development server:
+  **Because your resume is currently worth ₹15** <br>
+  *An AI-powered, brutally honest resume roaster and ATS analyzer.*
 
+  [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js)](https://nextjs.org/)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+  [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+  [![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat&logo=google&logoColor=white)](https://deepmind.google/technologies/gemini/)
+</div>
+
+<br/>
+
+## 🛑 The Problem
+Job seekers often send their resumes into a black hole, never knowing why they get mass-rejected. Standard ATS checkers are robotic, boring, and lack actionable feedback. Sometimes, what a candidate really needs is a brutal reality check—a "Sharma Ji Ka Beta" standard of evaluation.
+
+
+## 💡 The Solution: JhalmuriCV
+**JhalmuriCV** is a Next.js web application that takes your PDF resume, parses it, and feeds it to the Google Gemini API. It returns a hilariously savage "roast" of your career choices, alongside a legitimate ATS score and constructive feedback to help you actually improve your chances of getting hired.
+
+
+## ✨ Key Features
+- **📄 Instant PDF Parsing:** Seamlessly upload and extract text from your resume.
+- **🔥 Desi AI Roasts:** Powered by Gemini, the AI takes on the persona of a strict Indian dad or a ruthless corporate HR to tear your CV apart.
+- **🎯ATS Score Gauge:** A visual representation of how well your resume matches industry standards.
+- **🛠️ Constructive Feedback:** It’s not all insults! Get actionable tips on formatting, keyword optimization, and phrasing.
+- **📥 Exportable Reports:** Download your roast and feedback as a slick report.
+- **⚡ API Fallback Mechanism:** Uses a cycle of retries with three API keys ensuring that backend runs smoothly even if one fails.
+
+---
+
+
+## 🏗️ Tech Stack
+
+| Category | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | Next.js (App Router), React, Tailwind CSS | UI components, routing, and responsive styling. |
+| **Animations** | Framer Motion | Smooth transitions and engaging loading states. |
+| **Backend** | Next.js API Routes | Securely handling file parsing and API requests. |
+| **AI Engine** | Google Gemini 2.5 API | Generating the context-aware roasts and ATS analysis. |
+| **Language** | TypeScript | Type safety and scalable code architecture. |
+
+---
+
+## 🚀 Getting Started (Local Setup)
+
+Want to run JhalmuriCV on your local machine? Follow these steps:
+
+### 1. Clone the repository
 ```bash
-npm run dev
+git clone [https://github.com/yourusername/jhalmuricv.git](https://github.com/yourusername/jhalmuricv.git)
+cd jhalmuricv
+
+```
+### 2. Install dependencies
+```bash
+npm install
 # or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Set up Environment Variables
+Create a .env.local file in the root directory and add your Google Gemini API key:
+```bash
+# Get your key from Google AI Studio
+GEMINI_API_KEY_1=your_api_key_here
+GEMINI_API_KEY_2=your_api_key_here
+GEMINI_API_KEY_3=your_api_key_here
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Fire up the development server
+```bash
+npm run dev
+```
+Open http://localhost:3000 in your browser to see the application running.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📂 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+├── app/
+│   ├── api/            # Backend API routes for parsing and Gemini integration
+│   ├── results/        # The dynamic results page for the roast
+│   ├── fonts/          # Custom Geist typography
+│   ├── layout.tsx      # Root layout
+│   └── page.tsx        # Landing page
+├── components/         # Reusable UI (Hero, UploadZone, ATSChecker, ScoreGauge)
+├── lib/                # Utility functions, Gemini prompt engineering, types
+├── public/             # Static assets (SVGs, Favicon)
+└── tailwind.config.ts  # Tailwind styling configurations
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔮 Future Roadmap
 
-## Deploy on Vercel
+- **Custom Roasting Personas:** Allow users to choose their evaluator (e.g., "The Disappointed Desi Dad", "The Ruthless Tech Lead", "The Startup Bro").
+- **LinkedIn Profile Integration:** Bypass the PDF upload and securely parse public LinkedIn profiles for instant feedback.
+- **Enterprise Rate Limiting & Caching:** Implement Upstash/Redis to handle heavy traffic, cache duplicate resume hashes, and protect API quotas.
+- **Enhanced Security:** Harden the application against prompt injection attacks and implement rigorous input sanitization for uploaded documents.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## 👨‍💻 Author
+**Chiranjib Saikia**, a B.Tech Electrical Engineering student at Assam Engineering College who loves bridging the gap between core engineering logic and sleek, modern web experiences. He specializes in building full-stack applications and intuitive UIs using React, Next.js, and Tailwind CSS. 
+
+When he is not working on web projects, he is usually exploring other facets of technology. Recently, he developed **NOOK**, a minimalist, cross-platform Pomodoro desktop application built with React and Electron that features customizable aesthetic themes and built-in lofi audio. 
+
+Currently, he is expanding his technical horizons by diving deep into **Cybersecurity**. He is in the process of setting up his Kali Linux environment, exploring penetration testing, and learning how to actively secure and harden the web applications he builds. Whether he is tinkering with 555 timers on a physical breadboard or debugging a Next.js API route, he is always building.
+
+**🔗 Let's Connect:** https://linktr.ee/_chironnnn_?utm_source=linktree_profile_share&ltsid=24116cbf-6283-4196-abfc-4ad9b53614c1
