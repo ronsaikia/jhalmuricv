@@ -68,7 +68,6 @@ export default function ResultsPage() {
   const [showToast, setShowToast] = useState(false);
   const [toastSubMessage, setToastSubMessage] = useState<string | undefined>("Ab share karo sharam ke saath 😂");
   const [copied, setCopied] = useState(false);
-  const [rewriteCopied, setRewriteCopied] = useState(false);
   
   // AI Rewrite Lab State
   const [customBullet, setCustomBullet] = useState("");
@@ -105,7 +104,7 @@ export default function ResultsPage() {
         await new Promise(resolve => setTimeout(resolve, 1500));
         
         // Remove warning from mock result
-        let mockResult = {
+        const mockResult = {
           rewritten: "Improved processes using [Tool] leading to [X%] increase in efficiency across [N] projects",
           tip: "Always quantify efficiency gains.",
         };
@@ -603,9 +602,7 @@ export default function ResultsPage() {
                           onClick={() => {
                             navigator.clipboard.writeText(rewriteResult.rewritten);
                             setToastSubMessage(undefined);
-                            setRewriteCopied(true);
                             setShowToast(true);
-                            setTimeout(() => setRewriteCopied(false), 3000);
                           }}
                           className="absolute top-2 right-2 p-2 hover:bg-green-100 rounded transition-colors"
                           title="Copy rewritten bullet"

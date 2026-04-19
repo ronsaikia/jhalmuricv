@@ -100,7 +100,7 @@ export default function ReportDownload({ analysis }: ReportDownloadProps) {
         if (faviconData) {
           doc.addImage(faviconData, "PNG", margin, yPos - 8, 10, 10);
         }
-      } catch (e) {
+      } catch {
          // ignore
       }
 
