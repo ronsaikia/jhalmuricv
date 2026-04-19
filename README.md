@@ -1,10 +1,12 @@
 <div align="center">
-  <img src="public/favicon.svg" alt="JhalmuriCV Logo" width="100" />
+  
 
   
 
   **Because your resume is currently worth ₹15** <br>
   *An AI-powered, brutally honest resume roaster and ATS analyzer.*
+
+  
 
   [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat&logo=next.js)](https://nextjs.org/)
   [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
